@@ -1,0 +1,227 @@
+import { useEffect, useState } from "react";
+import Layout from "../components/Layout";
+import { supabase } from "../lib/supabase";
+import { Camera, Circle, Play, Calendar } from "lucide-react";
+
+const CameraDashboardPage = () => {
+  const [cameras, setCameras] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    recordings: 0,
+    offline: 0,
+  });
+  const [archive, setArchive] = useState([]);
+
+  useEffect(() => {
+    fetchCameras();
+    fetchArchive();
+  }, []);
+
+  const fetchCameras = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("devices")
+        .select("*")
+        .eq("type", "camera")
+        .order("name");
+
+      if (error) throw error;
+
+      setCameras(data || []);
+
+      const active = data?.filter((c) => c.status === "online").length || 0;
+      const offline = data?.filter((c) => c.status === "offline").length || 0;
+      const maintenance =
+        data?.filter((c) => c.status === "maintenance").length || 0;
+
+      setStats({
+        total: data?.length || 0,
+        active,
+        inactive: maintenance,
+        recordings: 0, // TODO: Fetch actual recordings count
+        offline,
+      });
+    } catch (error) {
+      console.error("Error fetching cameras:", error);
+    }
+  };
+
+  const fetchArchive = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("event_recordings")
+        .select(
+          `
+          *,
+          incident:incidents(*)
+        `
+        )
+        .order("created_at", { ascending: false })
+        .limit(12);
+
+      if (error) throw error;
+      setArchive(data || []);
+    } catch (error) {
+      console.error("Error fetching archive:", error);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "online":
+        return "text-green-500";
+      case "offline":
+        return "text-red-500";
+      default:
+        return "text-yellow-500";
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">
+            Camera Dashboard
+          </h1>
+          <p className="text-slate-600 mt-1">
+            General Control Center - Live Camera Feeds
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="card">
+            <p className="text-sm text-slate-600 mb-1">Total Cameras</p>
+            <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+          </div>
+          <div className="card">
+            <p className="text-sm text-slate-600 mb-1">Active</p>
+            <p className="text-3xl font-bold text-green-600">{stats.active}</p>
+          </div>
+          <div className="card">
+            <p className="text-sm text-slate-600 mb-1">Inactive</p>
+            <p className="text-3xl font-bold text-yellow-600">
+              {stats.inactive}
+            </p>
+          </div>
+          <div className="card">
+            <p className="text-sm text-slate-600 mb-1">Recordings</p>
+            <p className="text-3xl font-bold text-blue-600">
+              {stats.recordings}
+            </p>
+          </div>
+          <div className="card">
+            <p className="text-sm text-slate-600 mb-1">Offline</p>
+            <p className="text-3xl font-bold text-red-600">{stats.offline}</p>
+          </div>
+        </div>
+
+        {/* Live Camera Feeds Grid */}
+        <div className="card">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">
+            Live Camera Feeds
+          </h2>
+
+          {cameras.length === 0 ? (
+            <div className="text-center py-12">
+              <Camera className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500">No cameras registered</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cameras.map((camera) => (
+                <div
+                  key={camera.id}
+                  className="border border-slate-200 rounded-lg overflow-hidden"
+                >
+                  {/* Camera Feed */}
+                  <div className="aspect-video bg-slate-900 relative">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Camera className="w-12 h-12 text-slate-600" />
+                    </div>
+
+                    {/* Live Indicator */}
+                    {camera.status === "online" && (
+                      <div className="absolute top-3 left-3 flex items-center space-x-2 bg-black/70 px-2 py-1 rounded">
+                        <Circle className="w-2 h-2 text-red-500 fill-red-500 animate-pulse" />
+                        <span className="text-xs text-white font-medium">
+                          LIVE
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Play Button */}
+                    <button className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors">
+                      <Play className="w-12 h-12 text-white/80" />
+                    </button>
+                  </div>
+
+                  {/* Camera Info */}
+                  <div className="p-3 bg-white">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {camera.name}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {camera.location_text}
+                        </p>
+                      </div>
+                      <Circle
+                        className={`w-3 h-3 ${getStatusColor(
+                          camera.status
+                        )} fill-current`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Archive Section */}
+        <div className="card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-slate-900">Event Archive</h2>
+            <Calendar className="w-5 h-5 text-slate-400" />
+          </div>
+
+          {archive.length === 0 ? (
+            <div className="text-center py-12">
+              <Play className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-500">No recorded events</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {archive.map((recording) => (
+                <button
+                  key={recording.id}
+                  className="group relative aspect-video bg-slate-900 rounded-lg overflow-hidden hover:ring-2 ring-primary-500 transition-all"
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Camera className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Play className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                    <p className="text-xs text-white truncate">
+                      {recording.incident?.location_text}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default CameraDashboardPage;
