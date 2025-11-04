@@ -11,6 +11,7 @@ An IoT-based fire incident monitoring and early response system for Cagayan de O
 - 📍 Geographic incident tracking
 - 📈 Analytics and reporting
 - 👥 Role-based access control (Admin, FireResponder)
+- 🌙 Dark mode support for better visibility in different lighting conditions
 
 ## Tech Stack
 

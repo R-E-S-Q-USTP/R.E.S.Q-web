@@ -31,7 +31,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
       <div className="max-w-5xl w-full grid md:grid-cols-2 gap-8">
         {/* Left Side - Branding & Info */}
         <div className="flex flex-col justify-center space-y-6">
@@ -40,30 +40,30 @@ const LoginPage = () => {
               <Flame className="w-10 h-10 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">R.E.S.Q.</h1>
-              <p className="text-slate-600">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">R.E.S.Q.</h1>
+              <p className="text-slate-600 dark:text-slate-400">
                 Rapid Emergency Surveillance & Quenching
               </p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
-            <h2 className="text-xl font-semibold text-slate-900">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 space-y-4">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
               Fire Incident Monitoring System
             </h2>
-            <p className="text-slate-600">
+            <p className="text-slate-600 dark:text-slate-400">
               Real-time IoT-based fire detection and response system for Cagayan
               de Oro City. Powered by advanced ML image detection (YOLOv8) and
               IoT sensors.
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4">
-              <div className="text-center p-3 bg-primary-50 rounded-lg">
-                <p className="text-2xl font-bold text-primary-600">24/7</p>
-                <p className="text-xs text-slate-600">Monitoring</p>
+              <div className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">24/7</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Monitoring</p>
               </div>
-              <div className="text-center p-3 bg-primary-50 rounded-lg">
-                <p className="text-2xl font-bold text-primary-600">Real-time</p>
-                <p className="text-xs text-slate-600">Alerts</p>
+              <div className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">Real-time</p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Alerts</p>
               </div>
             </div>
           </div>
@@ -73,24 +73,24 @@ const LoginPage = () => {
 
         {/* Right Side - Login Form */}
         <div className="flex items-center">
-          <div className="bg-white rounded-xl shadow-xl p-8 w-full">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl p-8 w-full">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Sign In
               </h2>
-              <p className="text-slate-600">
+              <p className="text-slate-600 dark:text-slate-400">
                 Access the fire monitoring dashboard
               </p>
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start space-x-3">
+                <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-red-800">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-300">
                     Sign In Failed
                   </p>
-                  <p className="text-sm text-red-600">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
               </div>
             )}
@@ -99,7 +99,7 @@ const LoginPage = () => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Email / Station Name
                 </label>
@@ -118,7 +118,7 @@ const LoginPage = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-slate-700 mb-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
                 >
                   Password
                 </label>
@@ -151,7 +151,7 @@ const LoginPage = () => {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Bureau of Fire Protection - Cagayan de Oro City
               </p>
             </div>

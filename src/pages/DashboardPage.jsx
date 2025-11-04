@@ -80,8 +80,8 @@ const DashboardPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Real-time fire monitoring and incident overview
           </p>
         </div>
@@ -126,12 +126,12 @@ const DashboardPage = () => {
           {/* Active Alerts */}
           <div className="lg:col-span-2 card">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Active Alerts
               </h2>
               <Link
                 to="/alerts"
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
               >
                 View All
               </Link>
@@ -139,9 +139,9 @@ const DashboardPage = () => {
 
             {unacknowledgedAlerts.length === 0 ? (
               <div className="text-center py-12">
-                <Flame className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No active alerts</p>
-                <p className="text-sm text-slate-400 mt-1">
+                <Flame className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                <p className="text-slate-500 dark:text-slate-400">No active alerts</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
                   All systems operational
                 </p>
               </div>
@@ -150,24 +150,24 @@ const DashboardPage = () => {
                 {unacknowledgedAlerts.slice(0, 5).map((alert) => (
                   <div
                     key={alert.id}
-                    className="flex items-start justify-between p-4 bg-red-50 border border-red-200 rounded-lg"
+                    className="flex items-start justify-between p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
                   >
                     <div className="flex items-start space-x-3">
                       <div className="bg-red-600 p-2 rounded-lg">
                         <Flame className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">
                           Fire Detected
                         </p>
-                        <div className="flex items-center space-x-2 text-sm text-slate-600 mt-1">
+                        <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400 mt-1">
                           <MapPin className="w-4 h-4" />
                           <span>
                             {alert.incident?.location_text ||
                               "Unknown Location"}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-2 text-xs text-slate-500 mt-1">
+                        <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
                           <Clock className="w-3 h-3" />
                           <span>
                             {format(new Date(alert.created_at), "PPp")}
@@ -192,44 +192,44 @@ const DashboardPage = () => {
             {/* Live Camera Feed Preview */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-900">Live Cameras</h3>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Live Cameras</h3>
                 <Link
                   to="/cameras"
-                  className="text-sm text-primary-600 hover:text-primary-700"
+                  className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
                 >
                   View All
                 </Link>
               </div>
-              <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden mb-3">
+              <div className="aspect-video bg-slate-900 dark:bg-slate-950 rounded-lg overflow-hidden mb-3">
                 <div className="w-full h-full flex items-center justify-center">
-                  <Camera className="w-12 h-12 text-slate-600" />
+                  <Camera className="w-12 h-12 text-slate-600 dark:text-slate-500" />
                 </div>
               </div>
-              <p className="text-sm text-slate-600 text-center">
+              <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
                 Camera feeds available on dedicated page
               </p>
             </div>
 
             {/* System Status */}
             <div className="card">
-              <h3 className="font-semibold text-slate-900 mb-4">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
                 System Status
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">IoT Network</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">IoT Network</span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">ML Analytics</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">ML Analytics</span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Alert System</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Alert System</span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600">Database</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">Database</span>
                   <span className="badge badge-success">Operational</span>
                 </div>
               </div>
@@ -240,12 +240,12 @@ const DashboardPage = () => {
         {/* Recent Incidents */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
               Recent Incidents
             </h2>
             <Link
               to="/incidents"
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium"
             >
               View All
             </Link>
@@ -253,37 +253,37 @@ const DashboardPage = () => {
 
           {recentIncidents.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500">No recent incidents</p>
+              <p className="text-slate-500 dark:text-slate-400">No recent incidents</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Location
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Detection Method
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Time
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {recentIncidents.map((incident) => (
-                    <tr key={incident.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm text-slate-900">
+                    <tr key={incident.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                      <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">
                         {incident.location_text}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                         {incident.detection_method}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                         {format(new Date(incident.detected_at), "PPp")}
                       </td>
                       <td className="px-4 py-3 text-sm">

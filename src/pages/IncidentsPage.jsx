@@ -66,7 +66,7 @@ const IncidentsPage = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-slate-600">Loading incidents...</p>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading incidents...</p>
           </div>
         </div>
       </Layout>
@@ -78,10 +78,10 @@ const IncidentsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
             Incident History
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Complete log of all fire incidents and responses
           </p>
         </div>
@@ -121,82 +121,82 @@ const IncidentsPage = () => {
         <div className="card overflow-hidden">
           {filteredIncidents.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No incidents found</p>
+              <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-500 dark:text-slate-400">No incidents found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Incident ID
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Location
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Device
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Detection Method
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Detected At
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Acknowledged By
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {filteredIncidents.map((incident) => {
                     const alert = incident.alerts?.[0];
                     return (
-                      <tr key={incident.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-sm font-mono text-slate-600">
+                      <tr key={incident.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                        <td className="px-4 py-3 text-sm font-mono text-slate-600 dark:text-slate-400">
                           {incident.id.slice(0, 8)}...
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-900">
+                        <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">
                           <div className="flex items-center space-x-2">
-                            <MapPin className="w-4 h-4 text-slate-400" />
+                            <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                             <span>{incident.location_text || "Unknown"}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                           {incident.device?.name || "N/A"}
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                           <span className="badge badge-info">
                             {incident.detection_method}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                           <div className="flex items-center space-x-2">
-                            <Clock className="w-4 h-4 text-slate-400" />
+                            <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                             <div>
                               <p>
                                 {format(new Date(incident.detected_at), "PP")}
                               </p>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-xs text-slate-500 dark:text-slate-400">
                                 {format(new Date(incident.detected_at), "p")}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">
+                        <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                           {alert?.acknowledged_by_user?.full_name ? (
                             <div className="flex items-center space-x-2">
-                              <User className="w-4 h-4 text-slate-400" />
+                              <User className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                               <span>
                                 {alert.acknowledged_by_user.full_name}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-400">
+                            <span className="text-slate-400 dark:text-slate-500">
                               Not acknowledged
                             </span>
                           )}
@@ -224,14 +224,14 @@ const IncidentsPage = () => {
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Total Incidents</p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Incidents</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {incidents.length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Acknowledged</p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Acknowledged</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-500">
               {
                 incidents.filter(
                   (i) => i.alerts?.[0]?.status === "acknowledged"
@@ -240,8 +240,8 @@ const IncidentsPage = () => {
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Pending</p>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Pending</p>
+            <p className="text-3xl font-bold text-red-600 dark:text-red-500">
               {incidents.filter((i) => i.alerts?.[0]?.status === "new").length}
             </p>
           </div>

@@ -83,39 +83,39 @@ const SystemStatus = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-4">
-      <h3 className="text-sm font-semibold text-slate-900 mb-3">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
+      <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">
         System Status
       </h3>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.sensors.status)}
-            <span className="text-sm text-slate-600">IoT Sensors</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">IoT Sensors</span>
           </div>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {status.sensors.count}/{status.sensors.total} online
           </span>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.cameras.status)}
-            <span className="text-sm text-slate-600">Cameras</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Cameras</span>
           </div>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
             {status.cameras.count}/{status.cameras.total} online
           </span>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.analytics.status)}
-            <span className="text-sm text-slate-600">Analytics</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Analytics</span>
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.alerts.status)}
-            <span className="text-sm text-slate-600">Alerts</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">Alerts</span>
           </div>
         </div>
       </div>

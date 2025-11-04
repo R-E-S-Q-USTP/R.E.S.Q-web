@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AlertProvider } from "./contexts/AlertContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -21,9 +22,10 @@ import MaintenancePage from "./pages/MaintenancePage";
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AlertProvider>
-          <Routes>
+      <ThemeProvider>
+        <AuthProvider>
+          <AlertProvider>
+            <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route
               path="/dashboard"
@@ -99,8 +101,9 @@ function App() {
             />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Routes>
-        </AlertProvider>
-      </AuthProvider>
+          </AlertProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

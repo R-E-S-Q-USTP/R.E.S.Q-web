@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useAlerts } from "../contexts/AlertContext";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   LayoutDashboard,
   Camera,
@@ -14,6 +15,8 @@ import {
   LogOut,
   Flame,
   AlertCircle,
+  Moon,
+  Sun,
 } from "lucide-react";
 
 const Layout = ({ children }) => {
@@ -21,6 +24,7 @@ const Layout = ({ children }) => {
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { unacknowledgedCount } = useAlerts();
+  const { isDarkMode, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -53,17 +57,17 @@ const Layout = ({ children }) => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Top Navigation Bar */}
-      <nav className="bg-white shadow-sm border-b border-slate-200">
+      <nav className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Flame className="w-8 h-8 text-primary-600" />
+              <Flame className="w-8 h-8 text-primary-600 dark:text-primary-500" />
               <div>
-                <h1 className="text-xl font-bold text-slate-900">R.E.S.Q.</h1>
-                <p className="text-xs text-slate-500">Fire Monitoring System</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">R.E.S.Q.</h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Fire Monitoring System</p>
               </div>
             </div>
 
@@ -75,8 +79,8 @@ const Layout = ({ children }) => {
                   to={item.path}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors relative ${
                     isActive(item.path)
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-slate-600 hover:bg-slate-100"
+                      ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
@@ -90,17 +94,31 @@ const Layout = ({ children }) => {
               ))}
             </div>
 
-            {/* User Info & Logout */}
+            {/* User Info & Actions */}
             <div className="flex items-center space-x-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {profile?.full_name || "User"}
                 </p>
-                <p className="text-xs text-slate-500">{profile?.role}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.role}</p>
               </div>
+              
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                className="flex items-center space-x-2 px-3 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDarkMode ? (
+                  <Sun className="w-5 h-5" />
+                ) : (
+                  <Moon className="w-5 h-5" />
+                )}
+              </button>
+
               <button
                 onClick={handleSignOut}
-                className="flex items-center space-x-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="flex items-center space-x-2 px-3 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 <LogOut className="w-5 h-5" />
               </button>
@@ -110,7 +128,7 @@ const Layout = ({ children }) => {
       </nav>
 
       {/* Secondary Navigation Bar */}
-      <div className="bg-slate-100 border-b border-slate-200">
+      <div className="bg-slate-100 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center space-x-1">
@@ -120,8 +138,8 @@ const Layout = ({ children }) => {
                   to={item.path}
                   className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     isActive(item.path)
-                      ? "bg-white text-slate-900 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-200"
+                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                      : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
                   <item.icon className="w-4 h-4" />
@@ -138,8 +156,8 @@ const Layout = ({ children }) => {
                     to={item.path}
                     className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                       isActive(item.path)
-                        ? "bg-white text-slate-900 shadow-sm"
-                        : "text-slate-600 hover:bg-slate-200"
+                        ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 shadow-sm"
+                        : "text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                     }`}
                   >
                     <item.icon className="w-4 h-4" />
