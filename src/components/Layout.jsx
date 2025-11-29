@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useAlerts } from "../contexts/AlertContext";
 import { useTheme } from "../contexts/ThemeContext";
+import resqLogo from "../assets/resq.png";
 import {
   LayoutDashboard,
   Camera,
@@ -13,7 +14,6 @@ import {
   Settings,
   Wrench,
   LogOut,
-  Flame,
   AlertCircle,
   Moon,
   Sun,
@@ -64,10 +64,18 @@ const Layout = ({ children }) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <Flame className="w-8 h-8 text-primary-600 dark:text-primary-500" />
+              <img 
+                src={resqLogo} 
+                alt="R.E.S.Q. Logo" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">R.E.S.Q.</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Fire Monitoring System</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                  R.E.S.Q.
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Fire Monitoring System
+                </p>
               </div>
             </div>
 
@@ -100,14 +108,18 @@ const Layout = ({ children }) => {
                 <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {profile?.full_name || "User"}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.role}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {profile?.role}
+                </p>
               </div>
-              
+
               {/* Dark Mode Toggle */}
               <button
                 onClick={toggleTheme}
                 className="flex items-center space-x-2 px-3 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                title={
+                  isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+                }
               >
                 {isDarkMode ? (
                   <Sun className="w-5 h-5" />

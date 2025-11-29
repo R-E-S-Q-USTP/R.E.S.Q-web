@@ -7,39 +7,55 @@ import { FileText, Search, Filter, MapPin, Clock, User } from "lucide-react";
 const IncidentsPage = () => {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
-    fetchIncidents();
-  }, [filterStatus]);
-
-  const fetchIncidents = async () => {
-    try {
-      let query = supabase
-        .from("incidents")
-        .select(
-          `
-          *,
-          device:devices(*),
-          alerts(
+    let isMounted = true;
+    
+    const fetchIncidents = async () => {
+      try {
+        setError(null);
+        setLoading(true);
+        
+        const { data, error: fetchError } = await supabase
+          .from("incidents")
+          .select(
+            `
             *,
-            acknowledged_by_user:users!acknowledged_by(full_name)
+            device:devices(*),
+            alerts(
+              *,
+              acknowledged_by_user:users!acknowledged_by(full_name)
+            )
+          `
           )
-        `
-        )
-        .order("detected_at", { ascending: false });
+          .order("detected_at", { ascending: false });
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setIncidents(data || []);
-    } catch (error) {
-      console.error("Error fetching incidents:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (fetchError) throw fetchError;
+        
+        if (isMounted) {
+          setIncidents(data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching incidents:", error);
+        if (isMounted) {
+          setError(error.message || "Failed to load incidents");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    fetchIncidents();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [filterStatus]);
 
   const filteredIncidents = incidents.filter((incident) => {
     // Filter by search term
@@ -66,7 +82,27 @@ const IncidentsPage = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading incidents...</p>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">
+              Loading incidents...
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 btn-primary"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </Layout>
@@ -122,7 +158,9 @@ const IncidentsPage = () => {
           {filteredIncidents.length === 0 ? (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">No incidents found</p>
+              <p className="text-slate-500 dark:text-slate-400">
+                No incidents found
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -156,7 +194,10 @@ const IncidentsPage = () => {
                   {filteredIncidents.map((incident) => {
                     const alert = incident.alerts?.[0];
                     return (
-                      <tr key={incident.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                      <tr
+                        key={incident.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                      >
                         <td className="px-4 py-3 text-sm font-mono text-slate-600 dark:text-slate-400">
                           {incident.id.slice(0, 8)}...
                         </td>
@@ -224,13 +265,17 @@ const IncidentsPage = () => {
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Incidents</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Total Incidents
+            </p>
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {incidents.length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Acknowledged</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Acknowledged
+            </p>
             <p className="text-3xl font-bold text-green-600 dark:text-green-500">
               {
                 incidents.filter(
@@ -240,7 +285,9 @@ const IncidentsPage = () => {
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Pending</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Pending
+            </p>
             <p className="text-3xl font-bold text-red-600 dark:text-red-500">
               {incidents.filter((i) => i.alerts?.[0]?.status === "new").length}
             </p>

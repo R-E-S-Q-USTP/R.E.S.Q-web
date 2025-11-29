@@ -21,34 +21,34 @@ const AlertsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Alerts</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Alerts</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Manage and respond to fire detection alerts
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="card bg-red-50 border-red-200">
+          <div className="card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600 mb-1">Unacknowledged</p>
-                <p className="text-4xl font-bold text-red-700">
+                <p className="text-sm text-red-600 dark:text-red-400 mb-1">Unacknowledged</p>
+                <p className="text-4xl font-bold text-red-700 dark:text-red-300">
                   {newAlerts.length}
                 </p>
               </div>
-              <AlertCircle className="w-12 h-12 text-red-600" />
+              <AlertCircle className="w-12 h-12 text-red-600 dark:text-red-400" />
             </div>
           </div>
-          <div className="card bg-green-50 border-green-200">
+          <div className="card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 mb-1">Acknowledged</p>
-                <p className="text-4xl font-bold text-green-700">
+                <p className="text-sm text-green-600 dark:text-green-400 mb-1">Acknowledged</p>
+                <p className="text-4xl font-bold text-green-700 dark:text-green-300">
                   {acknowledgedAlerts.length}
                 </p>
               </div>
-              <CheckCircle className="w-12 h-12 text-green-600" />
+              <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
@@ -57,8 +57,8 @@ const AlertsPage = () => {
         {newAlerts.length > 0 && (
           <div className="card">
             <div className="flex items-center space-x-2 mb-4">
-              <AlertCircle className="w-6 h-6 text-red-600" />
-              <h2 className="text-lg font-bold text-slate-900">
+              <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Unacknowledged Alerts ({newAlerts.length})
               </h2>
             </div>
@@ -67,43 +67,43 @@ const AlertsPage = () => {
               {newAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className="p-4 bg-red-50 border-2 border-red-300 rounded-lg"
+                  className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 rounded-lg"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <Bell className="w-5 h-5 text-red-600" />
-                        <h3 className="text-lg font-bold text-slate-900">
+                        <Bell className="w-5 h-5 text-red-600 dark:text-red-400" />
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                           Fire Detected
                         </h3>
                         <span className="badge badge-danger">URGENT</span>
                       </div>
 
                       <div className="space-y-2 ml-8">
-                        <div className="flex items-center space-x-2 text-slate-700">
-                          <MapPin className="w-4 h-4 text-slate-500" />
+                        <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+                          <MapPin className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                           <span className="font-medium">
                             {alert.incident?.location_text ||
                               "Unknown Location"}
                           </span>
                         </div>
 
-                        <div className="flex items-center space-x-2 text-slate-600">
-                          <Clock className="w-4 h-4 text-slate-500" />
+                        <div className="flex items-center space-x-2 text-slate-600 dark:text-slate-400">
+                          <Clock className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                           <span className="text-sm">
                             {format(new Date(alert.created_at), "PPpp")}
                           </span>
                         </div>
 
                         {alert.incident?.device && (
-                          <div className="text-sm text-slate-600">
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
                             <span className="font-medium">Device:</span>{" "}
                             {alert.incident.device.name}
                           </div>
                         )}
 
                         {alert.incident?.detection_method && (
-                          <div className="text-sm text-slate-600">
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
                             <span className="font-medium">
                               Detection Method:
                             </span>{" "}
@@ -112,8 +112,8 @@ const AlertsPage = () => {
                         )}
 
                         {alert.incident?.sensor_snapshot && (
-                          <div className="mt-3 p-3 bg-white rounded border border-red-200">
-                            <p className="text-xs font-semibold text-slate-600 mb-2">
+                          <div className="mt-3 p-3 bg-white dark:bg-slate-800 rounded border border-red-200 dark:border-red-700">
+                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
                               Sensor Readings:
                             </p>
                             <div className="grid grid-cols-2 gap-2">
@@ -121,10 +121,10 @@ const AlertsPage = () => {
                                 alert.incident.sensor_snapshot
                               ).map(([key, value]) => (
                                 <div key={key} className="text-sm">
-                                  <span className="text-slate-600 capitalize">
+                                  <span className="text-slate-600 dark:text-slate-400 capitalize">
                                     {key}:
                                   </span>{" "}
-                                  <span className="font-semibold text-slate-900">
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">
                                     {value}
                                   </span>
                                 </div>
@@ -153,8 +153,8 @@ const AlertsPage = () => {
         {acknowledgedAlerts.length > 0 && (
           <div className="card">
             <div className="flex items-center space-x-2 mb-4">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-              <h2 className="text-lg font-bold text-slate-900">
+              <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                 Acknowledged Alerts ({acknowledgedAlerts.length})
               </h2>
             </div>
@@ -163,13 +163,13 @@ const AlertsPage = () => {
               {acknowledgedAlerts.map((alert) => (
                 <div
                   key={alert.id}
-                  className="p-4 bg-slate-50 border border-slate-200 rounded-lg"
+                  className="p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                        <h3 className="font-semibold text-slate-900">
+                        <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                        <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                           {alert.incident?.location_text || "Unknown Location"}
                         </h3>
                         <span className="badge badge-success">
@@ -177,7 +177,7 @@ const AlertsPage = () => {
                         </span>
                       </div>
 
-                      <div className="space-y-1 ml-8 text-sm text-slate-600">
+                      <div className="space-y-1 ml-8 text-sm text-slate-600 dark:text-slate-400">
                         <div className="flex items-center space-x-2">
                           <Clock className="w-3 h-3" />
                           <span>
@@ -212,9 +212,9 @@ const AlertsPage = () => {
         {/* Empty State */}
         {alerts.length === 0 && (
           <div className="card text-center py-12">
-            <Bell className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No alerts to display</p>
-            <p className="text-sm text-slate-400 mt-1">
+            <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-500 dark:text-slate-400">No alerts to display</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
               All systems are operational
             </p>
           </div>

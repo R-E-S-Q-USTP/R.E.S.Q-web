@@ -7,32 +7,9 @@ import { Radio, Circle, TrendingUp, MapPin, Clock } from "lucide-react";
 const SensorsPage = () => {
   const [sensors, setSensors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchSensors();
-
-    // Subscribe to real-time sensor updates
-    const channel = supabase
-      .channel("sensor-readings")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "sensor_readings",
-        },
-        () => {
-          fetchSensors();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchSensors = async () => {
+  const fetchSensors = async (isMounted = true) => {
     try {
       const { data: devices, error: devicesError } = await supabase
         .from("devices")
@@ -67,13 +44,48 @@ const SensorsPage = () => {
         })
       );
 
-      setSensors(sensorsWithReadings);
+      if (isMounted) {
+        setSensors(sensorsWithReadings);
+      }
     } catch (error) {
       console.error("Error fetching sensors:", error);
+      if (isMounted) {
+        setError(error.message || "Failed to load sensors");
+      }
     } finally {
-      setLoading(false);
+      if (isMounted) {
+        setLoading(false);
+      }
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    setError(null);
+    fetchSensors(isMounted);
+
+    // Subscribe to real-time sensor updates
+    const channel = supabase
+      .channel("sensor-readings")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "sensor_readings",
+        },
+        () => {
+          fetchSensors(isMounted);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -124,7 +136,25 @@ const SensorsPage = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-slate-600">Loading sensors...</p>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading sensors...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 btn-primary"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </Layout>
@@ -136,16 +166,16 @@ const SensorsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">IoT Sensors</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">IoT Sensors</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Real-time monitoring of all fire detection sensors
           </p>
         </div>
 
         {sensors.length === 0 ? (
           <div className="card text-center py-12">
-            <Radio className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No sensors registered</p>
+            <Radio className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+            <p className="text-slate-500 dark:text-slate-400">No sensors registered</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -157,8 +187,8 @@ const SensorsPage = () => {
                     <div
                       className={`p-2 rounded-lg ${
                         sensor.status === "online"
-                          ? "bg-green-100"
-                          : "bg-red-100"
+                          ? "bg-green-100 dark:bg-green-900/30"
+                          : "bg-red-100 dark:bg-red-900/30"
                       }`}
                     >
                       <Radio
@@ -166,10 +196,10 @@ const SensorsPage = () => {
                       />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">
+                      <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                         {sensor.name}
                       </h3>
-                      <div className="flex items-center space-x-2 text-xs text-slate-500 mt-1">
+                      <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
                         <MapPin className="w-3 h-3" />
                         <span>{sensor.location_text}</span>
                       </div>
@@ -228,8 +258,8 @@ const SensorsPage = () => {
 
                 {/* Last Heartbeat */}
                 {sensor.last_heartbeat && (
-                  <div className="mt-4 pt-4 border-t border-slate-200">
-                    <p className="text-xs text-slate-500">
+                  <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Last heartbeat:{" "}
                       {format(new Date(sensor.last_heartbeat), "PPp")}
                     </p>

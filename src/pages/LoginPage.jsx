@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { Flame, AlertCircle } from "lucide-react";
+import resqLogo from "../assets/resq.png";
+import { AlertCircle } from "lucide-react";
 import SystemStatus from "../components/SystemStatus";
 
 const LoginPage = () => {
@@ -36,11 +37,15 @@ const LoginPage = () => {
         {/* Left Side - Branding & Info */}
         <div className="flex flex-col justify-center space-y-6">
           <div className="flex items-center space-x-3">
-            <div className="bg-primary-600 p-3 rounded-xl">
-              <Flame className="w-10 h-10 text-white" />
-            </div>
+            <img 
+              src={resqLogo} 
+              alt="R.E.S.Q. Logo" 
+              className="w-16 h-16 object-contain"
+            />
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">R.E.S.Q.</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+                R.E.S.Q.
+              </h1>
               <p className="text-slate-600 dark:text-slate-400">
                 Rapid Emergency Surveillance & Quenching
               </p>
@@ -58,12 +63,20 @@ const LoginPage = () => {
             </p>
             <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">24/7</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Monitoring</p>
+                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                  24/7
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Monitoring
+                </p>
               </div>
               <div className="text-center p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
-                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">Real-time</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">Alerts</p>
+                <p className="text-2xl font-bold text-primary-600 dark:text-primary-400">
+                  Real-time
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Alerts
+                </p>
               </div>
             </div>
           </div>
@@ -90,7 +103,9 @@ const LoginPage = () => {
                   <p className="text-sm font-medium text-red-800 dark:text-red-300">
                     Sign In Failed
                   </p>
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {error}
+                  </p>
                 </div>
               </div>
             )}

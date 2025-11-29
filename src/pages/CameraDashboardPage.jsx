@@ -84,10 +84,10 @@ const CameraDashboardPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
             Camera Dashboard
           </h1>
-          <p className="text-slate-600 mt-1">
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             General Control Center - Live Camera Feeds
           </p>
         </div>
@@ -95,48 +95,48 @@ const CameraDashboardPage = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="card">
-            <p className="text-sm text-slate-600 mb-1">Total Cameras</p>
-            <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Cameras</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{stats.total}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-600 mb-1">Active</p>
-            <p className="text-3xl font-bold text-green-600">{stats.active}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Active</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.active}</p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-600 mb-1">Inactive</p>
-            <p className="text-3xl font-bold text-yellow-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Inactive</p>
+            <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
               {stats.inactive}
             </p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-600 mb-1">Recordings</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Recordings</p>
+            <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
               {stats.recordings}
             </p>
           </div>
           <div className="card">
-            <p className="text-sm text-slate-600 mb-1">Offline</p>
-            <p className="text-3xl font-bold text-red-600">{stats.offline}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Offline</p>
+            <p className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.offline}</p>
           </div>
         </div>
 
         {/* Live Camera Feeds Grid */}
         <div className="card">
-          <h2 className="text-lg font-bold text-slate-900 mb-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
             Live Camera Feeds
           </h2>
 
           {cameras.length === 0 ? (
             <div className="text-center py-12">
-              <Camera className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No cameras registered</p>
+              <Camera className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-500 dark:text-slate-400">No cameras registered</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {cameras.map((camera) => (
                 <div
                   key={camera.id}
-                  className="border border-slate-200 rounded-lg overflow-hidden"
+                  className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden"
                 >
                   {/* Camera Feed */}
                   <div className="aspect-video bg-slate-900 relative">
@@ -161,13 +161,13 @@ const CameraDashboardPage = () => {
                   </div>
 
                   {/* Camera Info */}
-                  <div className="p-3 bg-white">
+                  <div className="p-3 bg-white dark:bg-slate-800">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-slate-900 dark:text-slate-100">
                           {camera.name}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {camera.location_text}
                         </p>
                       </div>
@@ -187,14 +187,14 @@ const CameraDashboardPage = () => {
         {/* Archive Section */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-slate-900">Event Archive</h2>
-            <Calendar className="w-5 h-5 text-slate-400" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Event Archive</h2>
+            <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500" />
           </div>
 
           {archive.length === 0 ? (
             <div className="text-center py-12">
-              <Play className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No recorded events</p>
+              <Play className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-500 dark:text-slate-400">No recorded events</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">

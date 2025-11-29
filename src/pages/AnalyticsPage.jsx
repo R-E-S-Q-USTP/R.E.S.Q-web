@@ -13,62 +13,86 @@ const AnalyticsPage = () => {
     mostActiveLocation: "N/A",
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
+    const fetchAnalytics = async () => {
+      try {
+        setError(null);
+        
+        // Total incidents
+        const { count: totalIncidents, error: totalError } = await supabase
+          .from("incidents")
+          .select("*", { count: "exact", head: true });
+
+        if (totalError) throw totalError;
+
+        // Last 7 days
+        const { count: last7Days, error: last7Error } = await supabase
+          .from("incidents")
+          .select("*", { count: "exact", head: true })
+          .gte("detected_at", subDays(new Date(), 7).toISOString());
+
+        if (last7Error) throw last7Error;
+
+        // Last 30 days
+        const { count: last30Days, error: last30Error } = await supabase
+          .from("incidents")
+          .select("*", { count: "exact", head: true })
+          .gte("detected_at", subDays(new Date(), 30).toISOString());
+
+        if (last30Error) throw last30Error;
+
+        // Most active location (simplified)
+        const { data: incidents, error: incidentsError } = await supabase
+          .from("incidents")
+          .select("location_text")
+          .limit(100);
+
+        if (incidentsError) throw incidentsError;
+
+        const locationCounts = {};
+        incidents?.forEach((incident) => {
+          const loc = incident.location_text || "Unknown";
+          locationCounts[loc] = (locationCounts[loc] || 0) + 1;
+        });
+
+        const mostActiveLocation =
+          Object.keys(locationCounts).length > 0
+            ? Object.keys(locationCounts).reduce((a, b) =>
+                locationCounts[a] > locationCounts[b] ? a : b
+              )
+            : "N/A";
+
+        if (isMounted) {
+          setStats({
+            totalIncidents: totalIncidents || 0,
+            last7Days: last7Days || 0,
+            last30Days: last30Days || 0,
+            avgResponseTime: "2.5 min", // TODO: Calculate from actual data
+            mostActiveLocation,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching analytics:", error);
+        if (isMounted) {
+          setError(error.message || "Failed to load analytics");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchAnalytics();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
-
-  const fetchAnalytics = async () => {
-    try {
-      // Total incidents
-      const { count: totalIncidents } = await supabase
-        .from("incidents")
-        .select("*", { count: "exact", head: true });
-
-      // Last 7 days
-      const { count: last7Days } = await supabase
-        .from("incidents")
-        .select("*", { count: "exact", head: true })
-        .gte("detected_at", subDays(new Date(), 7).toISOString());
-
-      // Last 30 days
-      const { count: last30Days } = await supabase
-        .from("incidents")
-        .select("*", { count: "exact", head: true })
-        .gte("detected_at", subDays(new Date(), 30).toISOString());
-
-      // Most active location (simplified)
-      const { data: incidents } = await supabase
-        .from("incidents")
-        .select("location_text")
-        .limit(100);
-
-      const locationCounts = {};
-      incidents?.forEach((incident) => {
-        const loc = incident.location_text || "Unknown";
-        locationCounts[loc] = (locationCounts[loc] || 0) + 1;
-      });
-
-      const mostActiveLocation =
-        Object.keys(locationCounts).length > 0
-          ? Object.keys(locationCounts).reduce((a, b) =>
-              locationCounts[a] > locationCounts[b] ? a : b
-            )
-          : "N/A";
-
-      setStats({
-        totalIncidents: totalIncidents || 0,
-        last7Days: last7Days || 0,
-        last30Days: last30Days || 0,
-        avgResponseTime: "2.5 min", // TODO: Calculate from actual data
-        mostActiveLocation,
-      });
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -76,7 +100,27 @@ const AnalyticsPage = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading analytics...</p>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">
+              Loading analytics...
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 btn-primary"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </Layout>
@@ -88,7 +132,9 @@ const AnalyticsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Analytics</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Analytics
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             System performance metrics and incident statistics
           </p>
@@ -106,7 +152,9 @@ const AnalyticsPage = () => {
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {stats.totalIncidents}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">All time</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              All time
+            </p>
           </div>
 
           <div className="card">
@@ -119,7 +167,9 @@ const AnalyticsPage = () => {
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {stats.last7Days}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Recent activity</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Recent activity
+            </p>
           </div>
 
           <div className="card">
@@ -132,7 +182,9 @@ const AnalyticsPage = () => {
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {stats.last30Days}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Monthly total</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Monthly total
+            </p>
           </div>
 
           <div className="card">
@@ -145,7 +197,9 @@ const AnalyticsPage = () => {
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {stats.avgResponseTime}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Time to acknowledge</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Time to acknowledge
+            </p>
           </div>
         </div>
 

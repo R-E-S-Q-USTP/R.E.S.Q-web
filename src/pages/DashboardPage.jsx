@@ -80,7 +80,9 @@ const DashboardPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Dashboard
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Real-time fire monitoring and incident overview
           </p>
@@ -140,7 +142,9 @@ const DashboardPage = () => {
             {unacknowledgedAlerts.length === 0 ? (
               <div className="text-center py-12">
                 <Flame className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-500 dark:text-slate-400">No active alerts</p>
+                <p className="text-slate-500 dark:text-slate-400">
+                  No active alerts
+                </p>
                 <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
                   All systems operational
                 </p>
@@ -192,7 +196,9 @@ const DashboardPage = () => {
             {/* Live Camera Feed Preview */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100">Live Cameras</h3>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">
+                  Live Cameras
+                </h3>
                 <Link
                   to="/cameras"
                   className="text-sm text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300"
@@ -217,19 +223,27 @@ const DashboardPage = () => {
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">IoT Network</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    IoT Network
+                  </span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">ML Analytics</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    ML Analytics
+                  </span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Alert System</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    Alert System
+                  </span>
                   <span className="badge badge-success">Operational</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-600 dark:text-slate-400">Database</span>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    Database
+                  </span>
                   <span className="badge badge-success">Operational</span>
                 </div>
               </div>
@@ -253,7 +267,9 @@ const DashboardPage = () => {
 
           {recentIncidents.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-slate-500 dark:text-slate-400">No recent incidents</p>
+              <p className="text-slate-500 dark:text-slate-400">
+                No recent incidents
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -276,7 +292,10 @@ const DashboardPage = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {recentIncidents.map((incident) => (
-                    <tr key={incident.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                    <tr
+                      key={incident.id}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                    >
                       <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">
                         {incident.location_text}
                       </td>

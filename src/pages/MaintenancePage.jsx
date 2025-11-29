@@ -57,8 +57,8 @@ const MaintenancePage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Maintenance</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Maintenance</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Manage IoT devices and system maintenance
           </p>
         </div>
@@ -72,7 +72,7 @@ const MaintenancePage = () => {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterType === "all"
                     ? "bg-primary-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                 }`}
               >
                 All Devices
@@ -82,7 +82,7 @@ const MaintenancePage = () => {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterType === "camera"
                     ? "bg-primary-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                 }`}
               >
                 Cameras
@@ -92,7 +92,7 @@ const MaintenancePage = () => {
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   filterType === "sensor_hub"
                     ? "bg-primary-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
                 }`}
               >
                 Sensors
@@ -109,26 +109,26 @@ const MaintenancePage = () => {
         {/* Device Stats */}
         <div className="grid grid-cols-4 gap-4">
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Total Devices</p>
-            <p className="text-3xl font-bold text-slate-900">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Devices</p>
+            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {devices.length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Online</p>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Online</p>
+            <p className="text-3xl font-bold text-green-600 dark:text-green-400">
               {devices.filter((d) => d.status === "online").length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Offline</p>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Offline</p>
+            <p className="text-3xl font-bold text-red-600 dark:text-red-400">
               {devices.filter((d) => d.status === "offline").length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 mb-1">Maintenance</p>
-            <p className="text-3xl font-bold text-yellow-600">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Maintenance</p>
+            <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
               {devices.filter((d) => d.status === "maintenance").length}
             </p>
           </div>
@@ -142,61 +142,61 @@ const MaintenancePage = () => {
             </div>
           ) : filteredDevices.length === 0 ? (
             <div className="text-center py-8">
-              <Wrench className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No devices found</p>
+              <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+              <p className="text-slate-500 dark:text-slate-400">No devices found</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Device
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Type
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Location
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Status
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Last Heartbeat
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {filteredDevices.map((device) => (
-                    <tr key={device.id} className="hover:bg-slate-50">
+                    <tr key={device.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-3">
                           <div
                             className={`p-2 rounded-lg ${
                               device.type === "camera"
-                                ? "bg-blue-100"
-                                : "bg-green-100"
+                                ? "bg-blue-100 dark:bg-blue-900/30"
+                                : "bg-green-100 dark:bg-green-900/30"
                             }`}
                           >
                             {device.type === "camera" ? (
-                              <Camera className="w-5 h-5 text-blue-600" />
+                              <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             ) : (
-                              <Radio className="w-5 h-5 text-green-600" />
+                              <Radio className="w-5 h-5 text-green-600 dark:text-green-400" />
                             )}
                           </div>
-                          <span className="font-medium text-slate-900">
+                          <span className="font-medium text-slate-900 dark:text-slate-100">
                             {device.name}
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 capitalize">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 capitalize">
                         {device.type.replace("_", " ")}
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                         {device.location_text}
                       </td>
                       <td className="px-4 py-3 text-sm">
@@ -219,7 +219,7 @@ const MaintenancePage = () => {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                         {device.last_heartbeat
                           ? new Date(device.last_heartbeat).toLocaleString()
                           : "Never"}

@@ -44,7 +44,9 @@ const MapPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Geographic Map</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Geographic Map
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Real-time visualization of incidents and device locations
           </p>
@@ -57,7 +59,9 @@ const MapPage = () => {
             <div className="aspect-[16/10] bg-slate-100 dark:bg-slate-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
               <div className="text-center">
                 <MapIcon className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
-                <p className="text-slate-600 dark:text-slate-300 font-medium">Interactive Map</p>
+                <p className="text-slate-600 dark:text-slate-300 font-medium">
+                  Interactive Map
+                </p>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md">
                   Integrate with mapping library (e.g., Leaflet, Mapbox) to
                   display real-time device locations and incident markers
@@ -69,15 +73,21 @@ const MapPage = () => {
             <div className="mt-4 flex flex-wrap gap-4">
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-red-600 rounded-full"></div>
-                <span className="text-sm text-slate-600 dark:text-slate-400">Active Incident</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  Active Incident
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-blue-600 rounded-full"></div>
-                <span className="text-sm text-slate-600 dark:text-slate-400">Camera</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  Camera
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-green-600 rounded-full"></div>
-                <span className="text-sm text-slate-600 dark:text-slate-400">Sensor</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  Sensor
+                </span>
               </div>
             </div>
           </div>
@@ -124,7 +134,9 @@ const MapPage = () => {
 
             {/* Device List */}
             <div className="card">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">Devices</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                Devices
+              </h3>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {devices.map((device) => (

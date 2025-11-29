@@ -91,7 +91,9 @@ const SystemStatus = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.sensors.status)}
-            <span className="text-sm text-slate-600 dark:text-slate-400">IoT Sensors</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              IoT Sensors
+            </span>
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400">
             {status.sensors.count}/{status.sensors.total} online
@@ -100,7 +102,9 @@ const SystemStatus = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.cameras.status)}
-            <span className="text-sm text-slate-600 dark:text-slate-400">Cameras</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Cameras
+            </span>
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400">
             {status.cameras.count}/{status.cameras.total} online
@@ -109,13 +113,17 @@ const SystemStatus = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.analytics.status)}
-            <span className="text-sm text-slate-600 dark:text-slate-400">Analytics</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Analytics
+            </span>
           </div>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {getStatusIcon(status.alerts.status)}
-            <span className="text-sm text-slate-600 dark:text-slate-400">Alerts</span>
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Alerts
+            </span>
           </div>
         </div>
       </div>

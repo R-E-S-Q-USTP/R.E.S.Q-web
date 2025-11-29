@@ -20,27 +20,51 @@ export const AlertProvider = ({ children }) => {
   useEffect(() => {
     if (!user) return;
 
-    // Fetch initial alerts
-    fetchAlerts();
+    let channel = null;
 
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel("alerts-changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "alerts",
-        },
-        (payload) => {
-          handleAlertChange(payload);
-        }
-      )
-      .subscribe();
+    const setupChannel = () => {
+      // Remove existing channel if any
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+
+      // Subscribe to real-time updates
+      channel = supabase
+        .channel("alerts-changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "alerts",
+          },
+          (payload) => {
+            handleAlertChange(payload);
+          }
+        )
+        .subscribe();
+    };
+
+    // Fetch initial alerts and setup channel
+    fetchAlerts();
+    setupChannel();
+
+    // Handle tab visibility change - reconnect channel when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Refresh alerts and reconnect channel when tab becomes visible
+        fetchAlerts();
+        setupChannel();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user]);
 

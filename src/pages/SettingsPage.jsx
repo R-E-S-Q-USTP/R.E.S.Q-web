@@ -53,22 +53,22 @@ const SettingsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-          <p className="text-slate-600 mt-1">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Settings</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">
             Manage users, stations, and system configuration
           </p>
         </div>
 
         {/* Tabs */}
         <div className="card">
-          <div className="border-b border-slate-200">
+          <div className="border-b border-slate-200 dark:border-slate-700">
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab("users")}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "users"
                     ? "border-primary-600 text-primary-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300"
                 }`}
               >
                 <Users className="w-5 h-5 inline mr-2" />
@@ -79,7 +79,7 @@ const SettingsPage = () => {
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "stations"
                     ? "border-primary-600 text-primary-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300"
                 }`}
               >
                 <MapPin className="w-5 h-5 inline mr-2" />
@@ -90,7 +90,7 @@ const SettingsPage = () => {
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "system"
                     ? "border-primary-600 text-primary-600"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:border-slate-300"
                 }`}
               >
                 <SettingsIcon className="w-5 h-5 inline mr-2" />
@@ -104,7 +104,7 @@ const SettingsPage = () => {
             {activeTab === "users" && (
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     User Management
                   </h2>
                   <button className="btn btn-primary">
@@ -119,32 +119,32 @@ const SettingsPage = () => {
                   </div>
                 ) : users.length === 0 ? (
                   <div className="text-center py-8">
-                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">No users found</p>
+                    <Users className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-500 dark:text-slate-400">No users found</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-slate-50 border-b border-slate-200">
+                      <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                         <tr>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                             Name
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                             Role
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                             Station
                           </th>
-                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase">
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">
                             Actions
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-200">
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                         {users.map((user) => (
-                          <tr key={user.id} className="hover:bg-slate-50">
-                            <td className="px-4 py-3 text-sm text-slate-900">
+                          <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">
                               {user.full_name}
                             </td>
                             <td className="px-4 py-3 text-sm">
@@ -158,7 +158,7 @@ const SettingsPage = () => {
                                 {user.role}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm text-slate-600">
+                            <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">
                               {user.station?.name || "N/A"}
                             </td>
                             <td className="px-4 py-3 text-sm">
@@ -184,7 +184,7 @@ const SettingsPage = () => {
             {activeTab === "stations" && (
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-slate-900">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                     Fire Station Management
                   </h2>
                   <button className="btn btn-primary">
@@ -199,22 +199,22 @@ const SettingsPage = () => {
                   </div>
                 ) : stations.length === 0 ? (
                   <div className="text-center py-8">
-                    <MapPin className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                    <p className="text-slate-500">No stations found</p>
+                    <MapPin className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-500 dark:text-slate-400">No stations found</p>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-2 gap-4">
                     {stations.map((station) => (
                       <div
                         key={station.id}
-                        className="p-4 border border-slate-200 rounded-lg hover:border-primary-300 transition-colors"
+                        className="p-4 border border-slate-200 dark:border-slate-700 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
                       >
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-semibold text-slate-900">
+                            <h3 className="font-semibold text-slate-900 dark:text-slate-100">
                               {station.name}
                             </h3>
-                            <p className="text-sm text-slate-600 mt-1">
+                            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                               {station.location_text}
                             </p>
                           </div>
@@ -238,17 +238,17 @@ const SettingsPage = () => {
             {activeTab === "system" && (
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900 mb-4">
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
                     System Configuration
                   </h2>
 
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                       <div>
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
                           Real-time Notifications
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                           Enable browser push notifications for new alerts
                         </p>
                       </div>
@@ -262,12 +262,12 @@ const SettingsPage = () => {
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                       <div>
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
                           Alert Sound
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                           Play sound when new fire alert is detected
                         </p>
                       </div>
@@ -281,12 +281,12 @@ const SettingsPage = () => {
                       </label>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
                       <div>
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-slate-900 dark:text-slate-100">
                           Auto-refresh Data
                         </p>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
                           Automatically refresh dashboard data
                         </p>
                       </div>
