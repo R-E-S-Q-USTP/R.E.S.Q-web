@@ -139,6 +139,21 @@ const AnalyticsPage = () => {
     };
   }, []);
 
+  // Loading timeout - prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn("AnalyticsPage: Loading timeout reached");
+        setLoading(false);
+        if (!error) {
+          setError("Loading timeout - please refresh the page");
+        }
+      }
+    }, 15000);
+
+    return () => clearTimeout(timeout);
+  }, [loading, error]);
+
   if (loading) {
     return (
       <Layout>

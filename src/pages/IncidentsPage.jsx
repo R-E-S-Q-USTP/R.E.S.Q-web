@@ -131,7 +131,6 @@ const IncidentsPage = () => {
     const fetchIncidents = async () => {
       try {
         setError(null);
-        setLoading(true);
 
         const { data, error: fetchError } = await supabase
           .from("incidents")
@@ -170,7 +169,19 @@ const IncidentsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, [filterStatus]);
+  }, []); // Removed filterStatus - filtering is done client-side
+
+  // Loading timeout - prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn("IncidentsPage: Loading timeout reached");
+        setLoading(false);
+      }
+    }, 15000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const filteredIncidents = incidents.filter((incident) => {
     // Filter by search term

@@ -87,6 +87,21 @@ const SensorsPage = () => {
     };
   }, []);
 
+  // Loading timeout - prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn("SensorsPage: Loading timeout reached");
+        setLoading(false);
+        if (!error) {
+          setError("Loading timeout - please refresh the page");
+        }
+      }
+    }, 15000);
+
+    return () => clearTimeout(timeout);
+  }, [loading, error]);
+
   const getStatusColor = (status) => {
     switch (status) {
       case "online":
