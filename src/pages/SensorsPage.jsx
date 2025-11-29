@@ -4,9 +4,46 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { Radio, Circle, TrendingUp, MapPin, Clock } from "lucide-react";
 
+// Mock sensor data for demo
+const mockSensors = [
+  {
+    id: 1,
+    name: "Sensor Hub A1",
+    location_text: "Building A - Floor 1",
+    status: "online",
+    readings: {
+      temperature: { value: 28.5, reading_type: "temperature", created_at: new Date().toISOString() },
+      humidity: { value: 65, reading_type: "humidity", created_at: new Date().toISOString() },
+      smoke: { value: 12, reading_type: "smoke", created_at: new Date().toISOString() },
+    },
+  },
+  {
+    id: 2,
+    name: "Sensor Hub B2",
+    location_text: "Building B - Floor 2",
+    status: "online",
+    readings: {
+      temperature: { value: 26.2, reading_type: "temperature", created_at: new Date().toISOString() },
+      humidity: { value: 58, reading_type: "humidity", created_at: new Date().toISOString() },
+      smoke: { value: 8, reading_type: "smoke", created_at: new Date().toISOString() },
+    },
+  },
+  {
+    id: 3,
+    name: "Sensor Hub C1",
+    location_text: "Building C - Floor 1",
+    status: "maintenance",
+    readings: {
+      temperature: { value: 31.0, reading_type: "temperature", created_at: new Date().toISOString() },
+      humidity: { value: 72, reading_type: "humidity", created_at: new Date().toISOString() },
+      smoke: { value: 5, reading_type: "smoke", created_at: new Date().toISOString() },
+    },
+  },
+];
+
 const SensorsPage = () => {
-  const [sensors, setSensors] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [sensors, setSensors] = useState(mockSensors);
+  const [loading, setLoading] = useState(false); // Start with false - show mock data immediately
   const [error, setError] = useState(null);
 
   const fetchSensors = async (isMounted = true) => {
@@ -45,13 +82,14 @@ const SensorsPage = () => {
       );
 
       if (isMounted) {
-        setSensors(sensorsWithReadings);
+        // Use fetched data if available, otherwise keep mock data
+        if (sensorsWithReadings && sensorsWithReadings.length > 0) {
+          setSensors(sensorsWithReadings);
+        }
       }
     } catch (error) {
       console.error("Error fetching sensors:", error);
-      if (isMounted) {
-        setError(error.message || "Failed to load sensors");
-      }
+      // Keep mock data on error - don't set error state
     } finally {
       if (isMounted) {
         setLoading(false);
@@ -86,21 +124,6 @@ const SensorsPage = () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
-  // Loading timeout - prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn("SensorsPage: Loading timeout reached");
-        setLoading(false);
-        if (!error) {
-          setError("Loading timeout - please refresh the page");
-        }
-      }
-    }, 15000);
-
-    return () => clearTimeout(timeout);
-  }, [loading, error]);
 
   const getStatusColor = (status) => {
     switch (status) {

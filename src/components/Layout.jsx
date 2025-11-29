@@ -27,8 +27,16 @@ const Layout = ({ children }) => {
   const { isDarkMode, toggleTheme } = useTheme();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+    console.log("Logout button clicked");
+    try {
+      await signOut();
+      console.log("Sign out completed, navigating to login");
+      navigate("/login", { replace: true });
+    } catch (err) {
+      console.error("Sign out error:", err);
+      // Force navigate even on error
+      navigate("/login", { replace: true });
+    }
   };
 
   const primaryNavItems = [

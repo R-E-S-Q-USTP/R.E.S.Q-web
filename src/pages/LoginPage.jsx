@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import resqLogo from "../assets/resq.png";
@@ -10,8 +10,15 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +26,20 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
-      if (error) throw error;
-      navigate("/dashboard");
+      const result = await signIn(email, password);
+      console.log("Sign in result:", result);
+      
+      if (result.error) {
+        throw result.error;
+      }
+      
+      // For demo mode, navigate immediately since user state is already set
+      // For Supabase auth, the onAuthStateChange will trigger and useEffect above will navigate
+      if (result.data?.user) {
+        navigate("/dashboard", { replace: true });
+      }
     } catch (error) {
+      console.error("Login error:", error);
       setError(
         error.message || "Failed to sign in. Please check your credentials."
       );
@@ -121,6 +138,7 @@ const LoginPage = () => {
                 <input
                   id="email"
                   type="text"
+                  autoComplete="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input"
@@ -140,6 +158,7 @@ const LoginPage = () => {
                 <input
                   id="password"
                   type="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="input"

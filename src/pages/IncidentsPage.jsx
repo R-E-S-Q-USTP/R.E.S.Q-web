@@ -7,7 +7,7 @@ import { FileText, Search, Filter, MapPin, Clock, User } from "lucide-react";
 // Mock incident data
 const mockIncidents = [
   {
-    id: 1,
+    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     location_text: "Building A - Floor 2",
     detected_at: "2024-01-15T10:30:00Z",
     detection_method: "YOLOv8 Camera",
@@ -27,7 +27,7 @@ const mockIncidents = [
     },
   },
   {
-    id: 2,
+    id: "b2c3d4e5-f6a7-8901-bcde-f23456789012",
     location_text: "Warehouse Section C",
     detected_at: "2024-01-15T09:15:00Z",
     detection_method: "Temperature Sensor",
@@ -42,7 +42,7 @@ const mockIncidents = [
     },
   },
   {
-    id: 3,
+    id: "c3d4e5f6-a7b8-9012-cdef-345678901234",
     location_text: "Server Room",
     detected_at: "2024-01-14T16:45:00Z",
     detection_method: "Smoke Sensor",
@@ -62,7 +62,7 @@ const mockIncidents = [
     },
   },
   {
-    id: 4,
+    id: "d4e5f6a7-b8c9-0123-defa-456789012345",
     location_text: "Kitchen Area - Cafeteria",
     detected_at: "2024-01-14T12:20:00Z",
     detection_method: "Combined Detection",
@@ -82,7 +82,7 @@ const mockIncidents = [
     },
   },
   {
-    id: 5,
+    id: "e5f6a7b8-c9d0-1234-efab-567890123456",
     location_text: "Parking Garage B",
     detected_at: "2024-01-13T22:10:00Z",
     detection_method: "YOLOv8 Camera",
@@ -97,7 +97,7 @@ const mockIncidents = [
     },
   },
   {
-    id: 6,
+    id: "f6a7b8c9-d0e1-2345-fabc-678901234567",
     location_text: "Storage Room 3",
     detected_at: "2024-01-13T08:30:00Z",
     detection_method: "Temperature Sensor",
@@ -120,7 +120,7 @@ const mockIncidents = [
 
 const IncidentsPage = () => {
   const [incidents, setIncidents] = useState(mockIncidents);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start with false - show mock data immediately
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -130,8 +130,6 @@ const IncidentsPage = () => {
 
     const fetchIncidents = async () => {
       try {
-        setError(null);
-
         const { data, error: fetchError } = await supabase
           .from("incidents")
           .select(
@@ -169,19 +167,7 @@ const IncidentsPage = () => {
     return () => {
       isMounted = false;
     };
-  }, []); // Removed filterStatus - filtering is done client-side
-
-  // Loading timeout - prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (loading) {
-        console.warn("IncidentsPage: Loading timeout reached");
-        setLoading(false);
-      }
-    }, 15000);
-
-    return () => clearTimeout(timeout);
-  }, [loading]);
+  }, []); // Filtering is done client-side
 
   const filteredIncidents = incidents.filter((incident) => {
     // Filter by search term
@@ -325,7 +311,7 @@ const IncidentsPage = () => {
                         className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
                       >
                         <td className="px-4 py-3 text-sm font-mono text-slate-600 dark:text-slate-400">
-                          {incident.id.slice(0, 8)}...
+                          {String(incident.id).slice(0, 8)}...
                         </td>
                         <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">
                           <div className="flex items-center space-x-2">
