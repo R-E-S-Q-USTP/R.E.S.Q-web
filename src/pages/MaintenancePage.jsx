@@ -57,7 +57,9 @@ const MaintenancePage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Maintenance</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Maintenance
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Manage IoT devices and system maintenance
           </p>
@@ -109,25 +111,33 @@ const MaintenancePage = () => {
         {/* Device Stats */}
         <div className="grid grid-cols-4 gap-4">
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Total Devices</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Total Devices
+            </p>
             <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
               {devices.length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Online</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Online
+            </p>
             <p className="text-3xl font-bold text-green-600 dark:text-green-400">
               {devices.filter((d) => d.status === "online").length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Offline</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Offline
+            </p>
             <p className="text-3xl font-bold text-red-600 dark:text-red-400">
               {devices.filter((d) => d.status === "offline").length}
             </p>
           </div>
           <div className="card text-center">
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Maintenance</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+              Maintenance
+            </p>
             <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
               {devices.filter((d) => d.status === "maintenance").length}
             </p>
@@ -143,7 +153,9 @@ const MaintenancePage = () => {
           ) : filteredDevices.length === 0 ? (
             <div className="text-center py-8">
               <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <p className="text-slate-500 dark:text-slate-400">No devices found</p>
+              <p className="text-slate-500 dark:text-slate-400">
+                No devices found
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -172,7 +184,10 @@ const MaintenancePage = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                   {filteredDevices.map((device) => (
-                    <tr key={device.id} className="hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <tr
+                      key={device.id}
+                      className="hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-3">
                           <div

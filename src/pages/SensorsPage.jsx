@@ -61,7 +61,7 @@ const SensorsPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     setError(null);
     fetchSensors(isMounted);
 
@@ -136,7 +136,9 @@ const SensorsPage = () => {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading sensors...</p>
+            <p className="mt-4 text-slate-600 dark:text-slate-400">
+              Loading sensors...
+            </p>
           </div>
         </div>
       </Layout>
@@ -166,7 +168,9 @@ const SensorsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">IoT Sensors</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            IoT Sensors
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Real-time monitoring of all fire detection sensors
           </p>
@@ -175,7 +179,9 @@ const SensorsPage = () => {
         {sensors.length === 0 ? (
           <div className="card text-center py-12">
             <Radio className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">No sensors registered</p>
+            <p className="text-slate-500 dark:text-slate-400">
+              No sensors registered
+            </p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

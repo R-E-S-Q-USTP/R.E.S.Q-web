@@ -1,8 +1,53 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { supabase } from "../lib/supabase";
-import { BarChart3, TrendingUp, Activity, Calendar } from "lucide-react";
+import {
+  BarChart3,
+  TrendingUp,
+  Activity,
+  Calendar,
+  MapPin,
+} from "lucide-react";
 import { format, subDays } from "date-fns";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
+
+// Mock data for charts
+const mockIncidentsOverTime = [
+  { name: "Mon", incidents: 4 },
+  { name: "Tue", incidents: 7 },
+  { name: "Wed", incidents: 3 },
+  { name: "Thu", incidents: 8 },
+  { name: "Fri", incidents: 5 },
+  { name: "Sat", incidents: 2 },
+  { name: "Sun", incidents: 6 },
+];
+
+const mockDetectionMethods = [
+  { name: "YOLOv8 Camera", value: 45, color: "#3b82f6" },
+  { name: "Temperature Sensor", value: 30, color: "#ef4444" },
+  { name: "Smoke Sensor", value: 15, color: "#f97316" },
+  { name: "Combined Detection", value: 10, color: "#22c55e" },
+];
+
+const mockActiveLocations = [
+  { location: "Building A - Floor 2", incidents: 12 },
+  { location: "Warehouse Section C", incidents: 9 },
+  { location: "Server Room", incidents: 7 },
+  { location: "Kitchen Area", incidents: 5 },
+  { location: "Parking Garage", incidents: 3 },
+];
 
 const AnalyticsPage = () => {
   const [stats, setStats] = useState({
@@ -17,11 +62,11 @@ const AnalyticsPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchAnalytics = async () => {
       try {
         setError(null);
-        
+
         // Total incidents
         const { count: totalIncidents, error: totalError } = await supabase
           .from("incidents")
@@ -88,7 +133,7 @@ const AnalyticsPage = () => {
     };
 
     fetchAnalytics();
-    
+
     return () => {
       isMounted = false;
     };
@@ -203,19 +248,41 @@ const AnalyticsPage = () => {
           </div>
         </div>
 
-        {/* Charts Placeholder */}
+        {/* Charts with Recharts */}
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="card">
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Incidents Over Time
             </h3>
-            <div className="aspect-[2/1] bg-slate-50 dark:bg-slate-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
-              <div className="text-center">
-                <BarChart3 className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Chart: Line or bar chart showing incident trends
-                </p>
-              </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={mockIncidentsOverTime}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="#374151"
+                    opacity={0.3}
+                  />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#9ca3af"
+                    tick={{ fill: "#9ca3af" }}
+                  />
+                  <YAxis stroke="#9ca3af" tick={{ fill: "#9ca3af" }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1f2937",
+                      border: "1px solid #374151",
+                      borderRadius: "8px",
+                      color: "#f3f4f6",
+                    }}
+                  />
+                  <Bar
+                    dataKey="incidents"
+                    fill="#ef4444"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
@@ -223,29 +290,76 @@ const AnalyticsPage = () => {
             <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
               Detection Methods
             </h3>
-            <div className="aspect-[2/1] bg-slate-50 dark:bg-slate-700/50 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
-              <div className="text-center">
-                <BarChart3 className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Chart: Pie chart showing YOLOv8 vs Sensor vs Combined
-                </p>
-              </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={mockDetectionMethods}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                    label={({ name, percent }) =>
+                      `${name} ${(percent * 100).toFixed(0)}%`
+                    }
+                    labelLine={false}
+                  >
+                    {mockDetectionMethods.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1f2937",
+                      border: "1px solid #374151",
+                      borderRadius: "8px",
+                      color: "#f3f4f6",
+                    }}
+                  />
+                  <Legend
+                    formatter={(value) => (
+                      <span className="text-slate-600 dark:text-slate-300">
+                        {value}
+                      </span>
+                    )}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
 
-        {/* Most Active Location */}
+        {/* Most Active Locations */}
         <div className="card">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
-            Most Active Location
+            Most Active Locations
           </h3>
-          <div className="text-center py-8">
-            <p className="text-4xl font-bold text-primary-600 dark:text-primary-500">
-              {stats.mostActiveLocation}
-            </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-              Location with the highest number of incidents
-            </p>
+          <div className="space-y-3">
+            {mockActiveLocations.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center justify-center w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full">
+                    <MapPin className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {item.location}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                    {item.incidents}
+                  </span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
+                    incidents
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

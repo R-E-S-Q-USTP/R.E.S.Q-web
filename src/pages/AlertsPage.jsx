@@ -21,7 +21,9 @@ const AlertsPage = () => {
       <div className="space-y-6">
         {/* Page Header */}
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Alerts</h1>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+            Alerts
+          </h1>
           <p className="text-slate-600 dark:text-slate-400 mt-1">
             Manage and respond to fire detection alerts
           </p>
@@ -32,7 +34,9 @@ const AlertsPage = () => {
           <div className="card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600 dark:text-red-400 mb-1">Unacknowledged</p>
+                <p className="text-sm text-red-600 dark:text-red-400 mb-1">
+                  Unacknowledged
+                </p>
                 <p className="text-4xl font-bold text-red-700 dark:text-red-300">
                   {newAlerts.length}
                 </p>
@@ -43,7 +47,9 @@ const AlertsPage = () => {
           <div className="card bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 dark:text-green-400 mb-1">Acknowledged</p>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-1">
+                  Acknowledged
+                </p>
                 <p className="text-4xl font-bold text-green-700 dark:text-green-300">
                   {acknowledgedAlerts.length}
                 </p>
@@ -213,7 +219,9 @@ const AlertsPage = () => {
         {alerts.length === 0 && (
           <div className="card text-center py-12">
             <Bell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-            <p className="text-slate-500 dark:text-slate-400">No alerts to display</p>
+            <p className="text-slate-500 dark:text-slate-400">
+              No alerts to display
+            </p>
             <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
               All systems are operational
             </p>

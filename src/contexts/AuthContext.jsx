@@ -18,17 +18,20 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchProfile(session.user.id);
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Error getting session:", error);
         setLoading(false);
-      }
-    }).catch((error) => {
-      console.error("Error getting session:", error);
-      setLoading(false);
-    });
+      });
 
     // Listen for auth changes
     const {
@@ -50,11 +53,14 @@ export const AuthProvider = ({ children }) => {
 
     // Handle tab visibility change - refresh session when tab becomes visible
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         try {
-          const { data: { session }, error } = await supabase.auth.getSession();
+          const {
+            data: { session },
+            error,
+          } = await supabase.auth.getSession();
           if (error) throw error;
-          
+
           setUser(session?.user ?? null);
           if (session?.user) {
             await fetchProfile(session.user.id);
@@ -62,18 +68,21 @@ export const AuthProvider = ({ children }) => {
             setProfile(null);
           }
         } catch (error) {
-          console.error("Error refreshing session on visibility change:", error);
+          console.error(
+            "Error refreshing session on visibility change:",
+            error
+          );
         } finally {
           setLoading(false);
         }
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       subscription.unsubscribe();
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

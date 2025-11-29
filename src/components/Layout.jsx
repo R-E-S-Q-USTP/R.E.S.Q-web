@@ -64,9 +64,9 @@ const Layout = ({ children }) => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3">
-              <img 
-                src={resqLogo} 
-                alt="R.E.S.Q. Logo" 
+              <img
+                src={resqLogo}
+                alt="R.E.S.Q. Logo"
                 className="w-10 h-10 object-contain"
               />
               <div>

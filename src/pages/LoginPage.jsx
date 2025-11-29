@@ -37,9 +37,9 @@ const LoginPage = () => {
         {/* Left Side - Branding & Info */}
         <div className="flex flex-col justify-center space-y-6">
           <div className="flex items-center space-x-3">
-            <img 
-              src={resqLogo} 
-              alt="R.E.S.Q. Logo" 
+            <img
+              src={resqLogo}
+              alt="R.E.S.Q. Logo"
               className="w-16 h-16 object-contain"
             />
             <div>

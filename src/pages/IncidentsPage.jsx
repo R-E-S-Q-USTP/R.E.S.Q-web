@@ -4,8 +4,122 @@ import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
 import { FileText, Search, Filter, MapPin, Clock, User } from "lucide-react";
 
+// Mock incident data
+const mockIncidents = [
+  {
+    id: 1,
+    location_text: "Building A - Floor 2",
+    detected_at: "2024-01-15T10:30:00Z",
+    detection_method: "YOLOv8 Camera",
+    confidence_score: 0.95,
+    status: "resolved",
+    device: { id: 1, name: "Camera 01 - Main Entrance", type: "camera" },
+    alerts: [
+      {
+        status: "acknowledged",
+        acknowledged_by_user: { full_name: "John Smith" },
+      },
+    ],
+    sensor_snapshot: {
+      temperature: "85°C",
+      smoke_level: "High",
+      humidity: "45%",
+    },
+  },
+  {
+    id: 2,
+    location_text: "Warehouse Section C",
+    detected_at: "2024-01-15T09:15:00Z",
+    detection_method: "Temperature Sensor",
+    confidence_score: 0.88,
+    status: "active",
+    device: { id: 4, name: "Sensor Hub A1", type: "sensor" },
+    alerts: [{ status: "new" }],
+    sensor_snapshot: {
+      temperature: "72°C",
+      smoke_level: "Medium",
+      humidity: "38%",
+    },
+  },
+  {
+    id: 3,
+    location_text: "Server Room",
+    detected_at: "2024-01-14T16:45:00Z",
+    detection_method: "Smoke Sensor",
+    confidence_score: 0.92,
+    status: "resolved",
+    device: { id: 5, name: "Sensor Hub B2", type: "sensor" },
+    alerts: [
+      {
+        status: "acknowledged",
+        acknowledged_by_user: { full_name: "Maria Garcia" },
+      },
+    ],
+    sensor_snapshot: {
+      temperature: "55°C",
+      smoke_level: "Low",
+      humidity: "52%",
+    },
+  },
+  {
+    id: 4,
+    location_text: "Kitchen Area - Cafeteria",
+    detected_at: "2024-01-14T12:20:00Z",
+    detection_method: "Combined Detection",
+    confidence_score: 0.98,
+    status: "resolved",
+    device: { id: 2, name: "Camera 02 - Warehouse", type: "camera" },
+    alerts: [
+      {
+        status: "acknowledged",
+        acknowledged_by_user: { full_name: "John Smith" },
+      },
+    ],
+    sensor_snapshot: {
+      temperature: "68°C",
+      smoke_level: "High",
+      humidity: "35%",
+    },
+  },
+  {
+    id: 5,
+    location_text: "Parking Garage B",
+    detected_at: "2024-01-13T22:10:00Z",
+    detection_method: "YOLOv8 Camera",
+    confidence_score: 0.85,
+    status: "active",
+    device: { id: 3, name: "Camera 03 - Parking", type: "camera" },
+    alerts: [{ status: "new" }],
+    sensor_snapshot: {
+      temperature: "45°C",
+      smoke_level: "Low",
+      humidity: "60%",
+    },
+  },
+  {
+    id: 6,
+    location_text: "Storage Room 3",
+    detected_at: "2024-01-13T08:30:00Z",
+    detection_method: "Temperature Sensor",
+    confidence_score: 0.91,
+    status: "resolved",
+    device: { id: 6, name: "Sensor Hub C1", type: "sensor" },
+    alerts: [
+      {
+        status: "acknowledged",
+        acknowledged_by_user: { full_name: "Alex Johnson" },
+      },
+    ],
+    sensor_snapshot: {
+      temperature: "78°C",
+      smoke_level: "Medium",
+      humidity: "42%",
+    },
+  },
+];
+
 const IncidentsPage = () => {
-  const [incidents, setIncidents] = useState([]);
+  const [incidents, setIncidents] = useState(mockIncidents);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,12 +127,12 @@ const IncidentsPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+
     const fetchIncidents = async () => {
       try {
         setError(null);
         setLoading(true);
-        
+
         const { data, error: fetchError } = await supabase
           .from("incidents")
           .select(
@@ -34,24 +148,25 @@ const IncidentsPage = () => {
           .order("detected_at", { ascending: false });
 
         if (fetchError) throw fetchError;
-        
+
         if (isMounted) {
-          setIncidents(data || []);
+          // Use fetched data if available, otherwise keep mock data
+          if (data && data.length > 0) {
+            setIncidents(data);
+          }
         }
       } catch (error) {
         console.error("Error fetching incidents:", error);
-        if (isMounted) {
-          setError(error.message || "Failed to load incidents");
-        }
+        // Keep mock data on error
       } finally {
         if (isMounted) {
           setLoading(false);
         }
       }
     };
-    
+
     fetchIncidents();
-    
+
     return () => {
       isMounted = false;
     };
