@@ -1,194 +1,37 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import Layout from "../components/Layout";
-import { supabase } from "../lib/supabase";
+import { useIncidents } from "../hooks/useQueries";
 import { format } from "date-fns";
 import { FileText, Search, Filter, MapPin, Clock, User } from "lucide-react";
 
-// Mock incident data
-const mockIncidents = [
-  {
-    id: "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    location_text: "Building A - Floor 2",
-    detected_at: "2024-01-15T10:30:00Z",
-    detection_method: "YOLOv8 Camera",
-    confidence_score: 0.95,
-    status: "resolved",
-    device: { id: 1, name: "Camera 01 - Main Entrance", type: "camera" },
-    alerts: [
-      {
-        status: "acknowledged",
-        acknowledged_by_user: { full_name: "John Smith" },
-      },
-    ],
-    sensor_snapshot: {
-      temperature: "85°C",
-      smoke_level: "High",
-      humidity: "45%",
-    },
-  },
-  {
-    id: "b2c3d4e5-f6a7-8901-bcde-f23456789012",
-    location_text: "Warehouse Section C",
-    detected_at: "2024-01-15T09:15:00Z",
-    detection_method: "Temperature Sensor",
-    confidence_score: 0.88,
-    status: "active",
-    device: { id: 4, name: "Sensor Hub A1", type: "sensor" },
-    alerts: [{ status: "new" }],
-    sensor_snapshot: {
-      temperature: "72°C",
-      smoke_level: "Medium",
-      humidity: "38%",
-    },
-  },
-  {
-    id: "c3d4e5f6-a7b8-9012-cdef-345678901234",
-    location_text: "Server Room",
-    detected_at: "2024-01-14T16:45:00Z",
-    detection_method: "Smoke Sensor",
-    confidence_score: 0.92,
-    status: "resolved",
-    device: { id: 5, name: "Sensor Hub B2", type: "sensor" },
-    alerts: [
-      {
-        status: "acknowledged",
-        acknowledged_by_user: { full_name: "Maria Garcia" },
-      },
-    ],
-    sensor_snapshot: {
-      temperature: "55°C",
-      smoke_level: "Low",
-      humidity: "52%",
-    },
-  },
-  {
-    id: "d4e5f6a7-b8c9-0123-defa-456789012345",
-    location_text: "Kitchen Area - Cafeteria",
-    detected_at: "2024-01-14T12:20:00Z",
-    detection_method: "Combined Detection",
-    confidence_score: 0.98,
-    status: "resolved",
-    device: { id: 2, name: "Camera 02 - Warehouse", type: "camera" },
-    alerts: [
-      {
-        status: "acknowledged",
-        acknowledged_by_user: { full_name: "John Smith" },
-      },
-    ],
-    sensor_snapshot: {
-      temperature: "68°C",
-      smoke_level: "High",
-      humidity: "35%",
-    },
-  },
-  {
-    id: "e5f6a7b8-c9d0-1234-efab-567890123456",
-    location_text: "Parking Garage B",
-    detected_at: "2024-01-13T22:10:00Z",
-    detection_method: "YOLOv8 Camera",
-    confidence_score: 0.85,
-    status: "active",
-    device: { id: 3, name: "Camera 03 - Parking", type: "camera" },
-    alerts: [{ status: "new" }],
-    sensor_snapshot: {
-      temperature: "45°C",
-      smoke_level: "Low",
-      humidity: "60%",
-    },
-  },
-  {
-    id: "f6a7b8c9-d0e1-2345-fabc-678901234567",
-    location_text: "Storage Room 3",
-    detected_at: "2024-01-13T08:30:00Z",
-    detection_method: "Temperature Sensor",
-    confidence_score: 0.91,
-    status: "resolved",
-    device: { id: 6, name: "Sensor Hub C1", type: "sensor" },
-    alerts: [
-      {
-        status: "acknowledged",
-        acknowledged_by_user: { full_name: "Alex Johnson" },
-      },
-    ],
-    sensor_snapshot: {
-      temperature: "78°C",
-      smoke_level: "Medium",
-      humidity: "42%",
-    },
-  },
-];
-
 const IncidentsPage = () => {
-  const [incidents, setIncidents] = useState(mockIncidents);
-  const [loading, setLoading] = useState(false); // Start with false - show mock data immediately
-  const [error, setError] = useState(null);
+  const { data: incidents = [], isLoading, error, refetch } = useIncidents();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  useEffect(() => {
-    let isMounted = true;
+  // Memoize filtered incidents for performance
+  const filteredIncidents = useMemo(() => {
+    return incidents.filter((incident) => {
+      // Filter by search term
+      const matchesSearch =
+        searchTerm === "" ||
+        incident.location_text
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
+        incident.device?.name?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const fetchIncidents = async () => {
-      try {
-        const { data, error: fetchError } = await supabase
-          .from("incidents")
-          .select(
-            `
-            *,
-            device:devices(*),
-            alerts(
-              *,
-              acknowledged_by_user:users!acknowledged_by(full_name)
-            )
-          `
-          )
-          .order("detected_at", { ascending: false });
+      // Filter by status
+      const matchesStatus =
+        filterStatus === "all" ||
+        (filterStatus === "acknowledged" &&
+          incident.alerts?.[0]?.status === "acknowledged") ||
+        (filterStatus === "new" && incident.alerts?.[0]?.status === "new");
 
-        if (fetchError) throw fetchError;
+      return matchesSearch && matchesStatus;
+    });
+  }, [incidents, searchTerm, filterStatus]);
 
-        if (isMounted) {
-          // Use fetched data if available, otherwise keep mock data
-          if (data && data.length > 0) {
-            setIncidents(data);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching incidents:", error);
-        // Keep mock data on error
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchIncidents();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []); // Filtering is done client-side
-
-  const filteredIncidents = incidents.filter((incident) => {
-    // Filter by search term
-    const matchesSearch =
-      searchTerm === "" ||
-      incident.location_text
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      incident.device?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    // Filter by status
-    const matchesStatus =
-      filterStatus === "all" ||
-      (filterStatus === "acknowledged" &&
-        incident.alerts?.[0]?.status === "acknowledged") ||
-      (filterStatus === "new" && incident.alerts?.[0]?.status === "new");
-
-    return matchesSearch && matchesStatus;
-  });
-
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-12">
@@ -208,11 +51,10 @@ const IncidentsPage = () => {
       <Layout>
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 btn-primary"
-            >
+            <p className="text-red-600 dark:text-red-400">
+              Error: {error.message || "Failed to load incidents"}
+            </p>
+            <button onClick={() => refetch()} className="mt-4 btn-primary">
               Retry
             </button>
           </div>

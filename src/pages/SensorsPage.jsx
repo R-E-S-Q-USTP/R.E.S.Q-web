@@ -1,145 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Layout from "../components/Layout";
 import { supabase } from "../lib/supabase";
+import { useSensors, useInvalidateQueries } from "../hooks/useQueries";
 import { format } from "date-fns";
 import { Radio, Circle, TrendingUp, MapPin, Clock } from "lucide-react";
 
-// Mock sensor data for demo
-const mockSensors = [
-  {
-    id: 1,
-    name: "Sensor Hub A1",
-    location_text: "Building A - Floor 1",
-    status: "online",
-    readings: {
-      temperature: {
-        value: 28.5,
-        reading_type: "temperature",
-        created_at: new Date().toISOString(),
-      },
-      humidity: {
-        value: 65,
-        reading_type: "humidity",
-        created_at: new Date().toISOString(),
-      },
-      smoke: {
-        value: 12,
-        reading_type: "smoke",
-        created_at: new Date().toISOString(),
-      },
-    },
-  },
-  {
-    id: 2,
-    name: "Sensor Hub B2",
-    location_text: "Building B - Floor 2",
-    status: "online",
-    readings: {
-      temperature: {
-        value: 26.2,
-        reading_type: "temperature",
-        created_at: new Date().toISOString(),
-      },
-      humidity: {
-        value: 58,
-        reading_type: "humidity",
-        created_at: new Date().toISOString(),
-      },
-      smoke: {
-        value: 8,
-        reading_type: "smoke",
-        created_at: new Date().toISOString(),
-      },
-    },
-  },
-  {
-    id: 3,
-    name: "Sensor Hub C1",
-    location_text: "Building C - Floor 1",
-    status: "maintenance",
-    readings: {
-      temperature: {
-        value: 31.0,
-        reading_type: "temperature",
-        created_at: new Date().toISOString(),
-      },
-      humidity: {
-        value: 72,
-        reading_type: "humidity",
-        created_at: new Date().toISOString(),
-      },
-      smoke: {
-        value: 5,
-        reading_type: "smoke",
-        created_at: new Date().toISOString(),
-      },
-    },
-  },
-];
-
 const SensorsPage = () => {
-  const [sensors, setSensors] = useState(mockSensors);
-  const [loading, setLoading] = useState(false); // Start with false - show mock data immediately
-  const [error, setError] = useState(null);
+  const { data: sensors = [], isLoading, error, refetch } = useSensors();
+  const { invalidateSensors } = useInvalidateQueries();
 
-  const fetchSensors = async (isMounted = true) => {
-    try {
-      const { data: devices, error: devicesError } = await supabase
-        .from("devices")
-        .select("*")
-        .eq("type", "sensor_hub")
-        .order("name");
-
-      if (devicesError) throw devicesError;
-
-      // Fetch latest readings for each sensor
-      const sensorsWithReadings = await Promise.all(
-        (devices || []).map(async (device) => {
-          const { data: readings } = await supabase
-            .from("sensor_readings")
-            .select("*")
-            .eq("device_id", device.id)
-            .order("created_at", { ascending: false })
-            .limit(4);
-
-          // Group readings by type
-          const latestReadings = {};
-          readings?.forEach((reading) => {
-            if (!latestReadings[reading.reading_type]) {
-              latestReadings[reading.reading_type] = reading;
-            }
-          });
-
-          return {
-            ...device,
-            readings: latestReadings,
-          };
-        })
-      );
-
-      if (isMounted) {
-        // Use fetched data if available, otherwise keep mock data
-        if (sensorsWithReadings && sensorsWithReadings.length > 0) {
-          setSensors(sensorsWithReadings);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching sensors:", error);
-      // Keep mock data on error - don't set error state
-    } finally {
-      if (isMounted) {
-        setLoading(false);
-      }
-    }
-  };
-
+  // Subscribe to real-time sensor updates - invalidates cache on new readings
   useEffect(() => {
-    let isMounted = true;
-
-    setError(null);
-    fetchSensors(isMounted);
-
-    // Subscribe to real-time sensor updates
     const channel = supabase
       .channel("sensor-readings")
       .on(
@@ -150,16 +21,16 @@ const SensorsPage = () => {
           table: "sensor_readings",
         },
         () => {
-          fetchSensors(isMounted);
+          // Invalidate cache to trigger refetch
+          invalidateSensors();
         }
       )
       .subscribe();
 
     return () => {
-      isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [invalidateSensors]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -204,7 +75,7 @@ const SensorsPage = () => {
     return <Radio className="w-5 h-5" />;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Layout>
         <div className="flex items-center justify-center py-12">
@@ -224,11 +95,10 @@ const SensorsPage = () => {
       <Layout>
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <p className="text-red-600 dark:text-red-400">Error: {error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-4 btn-primary"
-            >
+            <p className="text-red-600 dark:text-red-400">
+              Error: {error.message || "Failed to load sensors"}
+            </p>
+            <button onClick={() => refetch()} className="mt-4 btn-primary">
               Retry
             </button>
           </div>

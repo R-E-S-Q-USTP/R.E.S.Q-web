@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { supabase } from "../lib/supabase";
+import { supabase, fetchWithTimeout } from "../lib/supabase";
 import { Map as MapIcon, MapPin, Flame, Camera, Radio } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -31,132 +31,88 @@ const incidentIcon = createIcon("#dc2626");
 const cameraIcon = createIcon("#2563eb");
 const sensorIcon = createIcon("#16a34a");
 
-// Mock map data with coordinates (centered around a sample location)
-const mockIncidents = [
-  {
-    id: 1,
-    location_text: "Building A - Floor 2",
-    lat: 14.5995,
-    lng: 120.9842,
-    detected_at: "2024-01-15T10:30:00Z",
-    status: "active",
-  },
-  {
-    id: 2,
-    location_text: "Warehouse Section C",
-    lat: 14.598,
-    lng: 120.9855,
-    detected_at: "2024-01-15T09:15:00Z",
-    status: "resolved",
-  },
-  {
-    id: 3,
-    location_text: "Parking Garage B",
-    lat: 14.601,
-    lng: 120.983,
-    detected_at: "2024-01-14T16:45:00Z",
-    status: "active",
-  },
-];
-
-const mockDevices = [
-  {
-    id: 1,
-    name: "Camera 01 - Main Entrance",
-    type: "camera",
-    lat: 14.5992,
-    lng: 120.9845,
-    status: "online",
-    location_text: "Main Entrance",
-  },
-  {
-    id: 2,
-    name: "Camera 02 - Warehouse",
-    type: "camera",
-    lat: 14.5978,
-    lng: 120.986,
-    status: "online",
-    location_text: "Warehouse Area",
-  },
-  {
-    id: 3,
-    name: "Camera 03 - Parking",
-    type: "camera",
-    lat: 14.6015,
-    lng: 120.9825,
-    status: "offline",
-    location_text: "Parking Lot B",
-  },
-  {
-    id: 4,
-    name: "Sensor Hub A1",
-    type: "sensor",
-    lat: 14.5998,
-    lng: 120.9838,
-    status: "online",
-    location_text: "Building A - Floor 1",
-  },
-  {
-    id: 5,
-    name: "Sensor Hub B2",
-    type: "sensor",
-    lat: 14.6005,
-    lng: 120.985,
-    status: "online",
-    location_text: "Building B - Floor 2",
-  },
-  {
-    id: 6,
-    name: "Sensor Hub C1",
-    type: "sensor",
-    lat: 14.5985,
-    lng: 120.987,
-    status: "maintenance",
-    location_text: "Building C - Floor 1",
-  },
-];
-
 const MapPage = () => {
-  const [incidents, setIncidents] = useState(mockIncidents);
-  const [devices, setDevices] = useState(mockDevices);
+  const [incidents, setIncidents] = useState([]);
+  const [devices, setDevices] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  // Map center (Manila, Philippines as example)
-  const mapCenter = [14.5995, 120.9842];
+  // Map center (USTP CDO Campus)
+  const mapCenter = [8.4857, 124.6565];
 
   useEffect(() => {
     fetchMapData();
+
+    // Subscribe to real-time incident updates for auto-updating pins
+    const incidentsChannel = supabase
+      .channel("map-incidents")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "incidents",
+        },
+        (payload) => {
+          console.log("New incident detected:", payload.new);
+          // Fetch full incident data with device info
+          fetchMapData();
+        }
+      )
+      .subscribe();
+
+    const devicesChannel = supabase
+      .channel("map-devices")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "devices",
+        },
+        () => {
+          fetchMapData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(incidentsChannel);
+      supabase.removeChannel(devicesChannel);
+    };
   }, []);
 
   const fetchMapData = async () => {
     try {
-      // Try to fetch real data, fallback to mock data
-      const { data: incidentsData } = await supabase
-        .from("incidents")
-        .select(
+      // Fetch real data with timeout
+      const { data: incidentsData } = await fetchWithTimeout(
+        supabase
+          .from("incidents")
+          .select(
+            `
+            *,
+            device:devices(*)
           `
-          *,
-          device:devices(*)
-        `
-        )
-        .order("detected_at", { ascending: false })
-        .limit(20);
+          )
+          .order("detected_at", { ascending: false })
+          .limit(20)
+      );
 
-      const { data: devicesData } = await supabase
-        .from("devices")
-        .select("*")
-        .order("name");
+      const { data: devicesData } = await fetchWithTimeout(
+        supabase.from("devices").select("*").order("name")
+      );
 
-      // Use real data if available, otherwise keep mock data
-      if (incidentsData && incidentsData.length > 0) {
+      // Use real data only - no mock fallback
+      if (incidentsData) {
         setIncidents(incidentsData);
       }
-      if (devicesData && devicesData.length > 0) {
+      if (devicesData) {
         setDevices(devicesData);
       }
     } catch (error) {
       console.error("Error fetching map data:", error);
-      // Keep mock data on error
+      // Set empty state on error - no mock data
+      setIncidents([]);
+      setDevices([]);
     }
   };
 

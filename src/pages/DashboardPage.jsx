@@ -4,24 +4,13 @@ import Layout from "../components/Layout";
 import { useAlerts } from "../contexts/AlertContext";
 import { supabase } from "../lib/supabase";
 import { format } from "date-fns";
-import {
-  Activity,
-  Radio,
-  Users,
-  TrendingUp,
-  Camera,
-  Flame,
-  MapPin,
-  Clock,
-} from "lucide-react";
+import { Radio, Users, Camera, Flame, MapPin, Clock } from "lucide-react";
 
 const DashboardPage = () => {
   const { alerts, acknowledgeAlert } = useAlerts();
   const [stats, setStats] = useState({
     activeSensors: 0,
-    systemUptime: "99.8%",
     responseTeam: 0,
-    systemHealth: 95,
   });
   const [recentIncidents, setRecentIncidents] = useState([]);
 
@@ -58,9 +47,7 @@ const DashboardPage = () => {
 
       setStats({
         activeSensors: devices?.length || 0,
-        systemUptime: "99.8%",
         responseTeam: users?.length || 0,
-        systemHealth: 95,
       });
 
       setRecentIncidents(incidents || []);
@@ -91,7 +78,7 @@ const DashboardPage = () => {
         {/* Summary Card */}
         <div className="card bg-gradient-to-br from-primary-600 to-primary-700 text-white">
           <h2 className="text-xl font-bold mb-6">R.E.S.Q. Fire Monitoring</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <Radio className="w-5 h-5 opacity-80" />
@@ -101,24 +88,10 @@ const DashboardPage = () => {
             </div>
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <Activity className="w-5 h-5 opacity-80" />
-                <span className="text-sm opacity-80">System Uptime</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.systemUptime}</p>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
                 <Users className="w-5 h-5 opacity-80" />
                 <span className="text-sm opacity-80">Response Team</span>
               </div>
               <p className="text-3xl font-bold">{stats.responseTeam}</p>
-            </div>
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <TrendingUp className="w-5 h-5 opacity-80" />
-                <span className="text-sm opacity-80">System Health</span>
-              </div>
-              <p className="text-3xl font-bold">{stats.systemHealth}%</p>
             </div>
           </div>
         </div>

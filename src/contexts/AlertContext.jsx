@@ -4,74 +4,6 @@ import { useAuth } from "./AuthContext";
 
 const AlertContext = createContext({});
 
-// Mock alert data
-const mockAlerts = [
-  {
-    id: 1,
-    status: "new",
-    created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(), // 5 minutes ago
-    incident: {
-      location_text: "Building A - Floor 2",
-      detection_method: "YOLOv8 Camera",
-      device: { name: "Camera 01 - Main Entrance" },
-      sensor_snapshot: {
-        temperature: "85°C",
-        smoke_level: "High",
-        humidity: "45%",
-      },
-    },
-  },
-  {
-    id: 2,
-    status: "new",
-    created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-    incident: {
-      location_text: "Warehouse Section C",
-      detection_method: "Temperature Sensor",
-      device: { name: "Sensor Hub A1" },
-      sensor_snapshot: {
-        temperature: "72°C",
-        smoke_level: "Medium",
-        humidity: "38%",
-      },
-    },
-  },
-  {
-    id: 3,
-    status: "acknowledged",
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    acknowledged_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-    acknowledged_by_user: { full_name: "John Smith" },
-    incident: {
-      location_text: "Server Room",
-      detection_method: "Smoke Sensor",
-      device: { name: "Sensor Hub B2" },
-      sensor_snapshot: {
-        temperature: "55°C",
-        smoke_level: "Low",
-        humidity: "52%",
-      },
-    },
-  },
-  {
-    id: 4,
-    status: "acknowledged",
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    acknowledged_at: new Date(Date.now() - 4.5 * 60 * 60 * 1000).toISOString(),
-    acknowledged_by_user: { full_name: "Maria Garcia" },
-    incident: {
-      location_text: "Kitchen Area - Cafeteria",
-      detection_method: "Combined Detection",
-      device: { name: "Camera 02 - Warehouse" },
-      sensor_snapshot: {
-        temperature: "68°C",
-        smoke_level: "High",
-        humidity: "35%",
-      },
-    },
-  },
-];
-
 export const useAlerts = () => {
   const context = useContext(AlertContext);
   if (!context) {
@@ -81,10 +13,8 @@ export const useAlerts = () => {
 };
 
 export const AlertProvider = ({ children }) => {
-  const [alerts, setAlerts] = useState(mockAlerts);
-  const [unacknowledgedCount, setUnacknowledgedCount] = useState(
-    mockAlerts.filter((a) => a.status === "new").length
-  );
+  const [alerts, setAlerts] = useState([]);
+  const [unacknowledgedCount, setUnacknowledgedCount] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -157,16 +87,16 @@ export const AlertProvider = ({ children }) => {
 
       if (error) throw error;
 
-      // Use fetched data if available, otherwise keep mock data
-      if (data && data.length > 0) {
-        setAlerts(data);
-        setUnacknowledgedCount(
-          data.filter((alert) => alert.status === "new").length
-        );
-      }
+      // Use real data only - no mock fallback
+      setAlerts(data || []);
+      setUnacknowledgedCount(
+        (data || []).filter((alert) => alert.status === "new").length
+      );
     } catch (error) {
       console.error("Error fetching alerts:", error);
-      // Keep mock data on error
+      // Set empty state on error - no mock data
+      setAlerts([]);
+      setUnacknowledgedCount(0);
     }
   };
 
@@ -200,21 +130,7 @@ export const AlertProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error("Error acknowledging alert:", error);
-      // Handle mock data acknowledgment
-      setAlerts((prev) =>
-        prev.map((alert) =>
-          alert.id === alertId
-            ? {
-                ...alert,
-                status: "acknowledged",
-                acknowledged_at: new Date().toISOString(),
-                acknowledged_by_user: { full_name: "Current User" },
-              }
-            : alert
-        )
-      );
-      setUnacknowledgedCount((prev) => Math.max(0, prev - 1));
-      return { success: true };
+      return { success: false, error: error.message };
     }
   };
 

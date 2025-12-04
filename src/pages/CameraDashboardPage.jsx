@@ -14,97 +14,23 @@ import {
 } from "lucide-react";
 import testVideo from "../assets/testvideo.mp4";
 import { checkMLHealth, createDetectionLoop } from "../services/mlService";
-
-// Mock camera data
-const mockCameras = [
-  {
-    id: 1,
-    name: "Camera 01",
-    location_text: "Main Entrance",
-    status: "online",
-    type: "camera",
-  },
-  {
-    id: 2,
-    name: "Camera 02",
-    location_text: "Warehouse Area",
-    status: "online",
-    type: "camera",
-  },
-  {
-    id: 3,
-    name: "Camera 03",
-    location_text: "Parking Lot B",
-    status: "offline",
-    type: "camera",
-  },
-  {
-    id: 4,
-    name: "Camera 04",
-    location_text: "Server Room",
-    status: "online",
-    type: "camera",
-  },
-  {
-    id: 5,
-    name: "Camera 05",
-    location_text: "Kitchen Area",
-    status: "maintenance",
-    type: "camera",
-  },
-  {
-    id: 6,
-    name: "Camera 06",
-    location_text: "Storage Room",
-    status: "online",
-    type: "camera",
-  },
-];
-
-// Mock archive data
-const mockArchive = [
-  {
-    id: 1,
-    incident: { location_text: "Building A - Floor 2" },
-    created_at: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: 2,
-    incident: { location_text: "Warehouse Section C" },
-    created_at: "2024-01-15T09:15:00Z",
-  },
-  {
-    id: 3,
-    incident: { location_text: "Server Room" },
-    created_at: "2024-01-14T16:45:00Z",
-  },
-  {
-    id: 4,
-    incident: { location_text: "Kitchen Area" },
-    created_at: "2024-01-14T12:20:00Z",
-  },
-  {
-    id: 5,
-    incident: { location_text: "Parking Garage B" },
-    created_at: "2024-01-13T22:10:00Z",
-  },
-  {
-    id: 6,
-    incident: { location_text: "Storage Room 3" },
-    created_at: "2024-01-13T08:30:00Z",
-  },
-];
+import {
+  getOrRegisterDevice,
+  createFireAlert,
+  setDeviceOffline,
+  ALERT_COOLDOWN_MS,
+} from "../services/alertService";
 
 const CameraDashboardPage = () => {
-  const [cameras, setCameras] = useState(mockCameras);
+  const [cameras, setCameras] = useState([]);
   const [stats, setStats] = useState({
-    total: mockCameras.length,
-    active: mockCameras.filter((c) => c.status === "online").length,
-    inactive: mockCameras.filter((c) => c.status === "maintenance").length,
-    recordings: mockArchive.length,
-    offline: mockCameras.filter((c) => c.status === "offline").length,
+    total: 0,
+    active: 0,
+    inactive: 0,
+    recordings: 0,
+    offline: 0,
   });
-  const [archive, setArchive] = useState(mockArchive);
+  const [archive, setArchive] = useState([]);
 
   // ML Detection state
   const [useWebcam, setUseWebcam] = useState(false);
@@ -117,6 +43,12 @@ const CameraDashboardPage = () => {
   const [lastDetection, setLastDetection] = useState(null);
   const [fireAlert, setFireAlert] = useState(false);
 
+  // Device and cooldown refs
+  const deviceRef = useRef(null);
+  const lastAlertTimeRef = useRef(0);
+  const cooldownRemainingRef = useRef(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
   // Refs
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -126,6 +58,16 @@ const CameraDashboardPage = () => {
     fetchCameras();
     fetchArchive();
     checkMLBackend();
+    registerMLDevice();
+
+    // Cooldown timer update
+    const cooldownInterval = setInterval(() => {
+      const remaining = Math.max(
+        0,
+        ALERT_COOLDOWN_MS - (Date.now() - lastAlertTimeRef.current)
+      );
+      setCooldownRemaining(remaining);
+    }, 1000);
 
     return () => {
       // Cleanup on unmount
@@ -133,8 +75,34 @@ const CameraDashboardPage = () => {
       if (detectionLoopRef.current) {
         detectionLoopRef.current.stop();
       }
+      clearInterval(cooldownInterval);
+      // Set device offline when leaving
+      if (deviceRef.current?.id) {
+        setDeviceOffline(deviceRef.current.id);
+      }
     };
   }, []);
+
+  // Auto-start detection when webcam is active and ML is ready
+  useEffect(() => {
+    if (useWebcam && mlStatus.online && mlStatus.modelLoaded && !isDetecting) {
+      // Small delay to ensure video element is ready
+      const timer = setTimeout(() => {
+        startDetection();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [useWebcam, mlStatus.online, mlStatus.modelLoaded]);
+
+  const registerMLDevice = async () => {
+    const device = await getOrRegisterDevice();
+    if (device) {
+      deviceRef.current = device;
+      console.log("📷 ML Device ready:", device.name);
+      // Refresh cameras to include the new device
+      fetchCameras();
+    }
+  };
 
   const checkMLBackend = async () => {
     const status = await checkMLHealth();
@@ -151,7 +119,7 @@ const CameraDashboardPage = () => {
 
       if (error) throw error;
 
-      // Use real data if available
+      // Use real data only - no mock fallback
       if (data && data.length > 0) {
         setCameras(data);
 
@@ -161,17 +129,27 @@ const CameraDashboardPage = () => {
           (c) => c.status === "maintenance"
         ).length;
 
-        setStats({
+        setStats((prev) => ({
+          ...prev,
           total: data.length,
           active,
           inactive: maintenance,
-          recordings: archive.length,
           offline,
-        });
+        }));
+      } else {
+        setCameras([]);
+        setStats((prev) => ({
+          ...prev,
+          total: 0,
+          active: 0,
+          inactive: 0,
+          offline: 0,
+        }));
       }
     } catch (error) {
       console.error("Error fetching cameras:", error);
-      // Keep mock data on error
+      // Set empty state on error - no mock data
+      setCameras([]);
     }
   };
 
@@ -190,13 +168,18 @@ const CameraDashboardPage = () => {
 
       if (error) throw error;
 
-      // Use real data if available
+      // Use real data only - no mock fallback
       if (data && data.length > 0) {
         setArchive(data);
+        setStats((prev) => ({ ...prev, recordings: data.length }));
+      } else {
+        setArchive([]);
+        setStats((prev) => ({ ...prev, recordings: 0 }));
       }
     } catch (error) {
       console.error("Error fetching archive:", error);
-      // Keep mock data on error
+      // Set empty state on error - no mock data
+      setArchive([]);
     }
   };
 
@@ -256,12 +239,37 @@ const CameraDashboardPage = () => {
   };
 
   // Detection controls
-  const handleDetectionResult = useCallback((result) => {
+  const handleDetectionResult = useCallback(async (result) => {
     setLastDetection(result);
 
     if (result.fireDetected) {
       setFireAlert(true);
       console.log("🔥 FIRE DETECTED!", result);
+
+      // Check cooldown before creating alert
+      const now = Date.now();
+      const timeSinceLastAlert = now - lastAlertTimeRef.current;
+
+      if (timeSinceLastAlert >= ALERT_COOLDOWN_MS && deviceRef.current?.id) {
+        console.log("🚨 Creating alert (cooldown passed)...");
+
+        // Create incident and alert in Supabase
+        const alertResult = await createFireAlert(deviceRef.current.id, result);
+
+        if (alertResult) {
+          console.log("✅ Alert created successfully:", alertResult);
+          lastAlertTimeRef.current = now;
+          // Refresh data to show new incident
+          fetchCameras();
+        } else {
+          console.error("❌ Failed to create alert");
+        }
+      } else {
+        const remainingSec = Math.ceil(
+          (ALERT_COOLDOWN_MS - timeSinceLastAlert) / 1000
+        );
+        console.log(`⏳ Cooldown active: ${remainingSec}s remaining`);
+      }
     } else {
       setFireAlert(false);
     }
@@ -287,14 +295,6 @@ const CameraDashboardPage = () => {
     setIsDetecting(false);
     setFireAlert(false);
     setLastDetection(null);
-  };
-
-  const toggleDetection = () => {
-    if (isDetecting) {
-      stopDetection();
-    } else {
-      startDetection();
-    }
   };
 
   return (
@@ -353,29 +353,20 @@ const CameraDashboardPage = () => {
               {useWebcam ? "Stop Webcam" : "Use Webcam"}
             </button>
 
-            {/* Detection Toggle Button */}
-            {useWebcam && (
-              <button
-                onClick={toggleDetection}
-                disabled={!mlStatus.online || !mlStatus.modelLoaded}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isDetecting
-                    ? "bg-orange-600 hover:bg-orange-700 text-white"
-                    : "bg-green-600 hover:bg-green-700 text-white"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isDetecting ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Stop Detection
-                  </>
-                ) : (
-                  <>
-                    <Activity className="w-5 h-5" />
-                    Start Detection
-                  </>
-                )}
-              </button>
+            {/* Auto-detection indicator */}
+            {useWebcam && isDetecting && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <Activity className="w-4 h-4 animate-pulse" />
+                <span>Auto-detecting</span>
+              </div>
+            )}
+
+            {/* Cooldown indicator */}
+            {cooldownRemaining > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-sm bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Cooldown: {Math.ceil(cooldownRemaining / 1000)}s</span>
+              </div>
             )}
           </div>
         </div>
