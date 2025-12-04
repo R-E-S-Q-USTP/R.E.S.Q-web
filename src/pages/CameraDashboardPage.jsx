@@ -1,8 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Layout from "../components/Layout";
 import { supabase } from "../lib/supabase";
-import { Camera, Circle, Play, Calendar } from "lucide-react";
+import {
+  Camera,
+  Circle,
+  Play,
+  Calendar,
+  Video,
+  VideoOff,
+  AlertTriangle,
+  Activity,
+  Loader2,
+} from "lucide-react";
 import testVideo from "../assets/testvideo.mp4";
+import { checkMLHealth, createDetectionLoop } from "../services/mlService";
 
 // Mock camera data
 const mockCameras = [
@@ -95,10 +106,40 @@ const CameraDashboardPage = () => {
   });
   const [archive, setArchive] = useState(mockArchive);
 
+  // ML Detection state
+  const [useWebcam, setUseWebcam] = useState(false);
+  const [webcamStream, setWebcamStream] = useState(null);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [mlStatus, setMlStatus] = useState({
+    online: false,
+    modelLoaded: false,
+  });
+  const [lastDetection, setLastDetection] = useState(null);
+  const [fireAlert, setFireAlert] = useState(false);
+
+  // Refs
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const detectionLoopRef = useRef(null);
+
   useEffect(() => {
     fetchCameras();
     fetchArchive();
+    checkMLBackend();
+
+    return () => {
+      // Cleanup on unmount
+      stopWebcam();
+      if (detectionLoopRef.current) {
+        detectionLoopRef.current.stop();
+      }
+    };
   }, []);
+
+  const checkMLBackend = async () => {
+    const status = await checkMLHealth();
+    setMlStatus(status);
+  };
 
   const fetchCameras = async () => {
     try {
@@ -170,18 +211,251 @@ const CameraDashboardPage = () => {
     }
   };
 
+  // Webcam controls
+  const startWebcam = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+      });
+      setWebcamStream(stream);
+      setUseWebcam(true);
+
+      // Wait for state to update, then set video source
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Error accessing webcam:", error);
+      alert(
+        "Could not access webcam. Please ensure camera permissions are granted."
+      );
+    }
+  };
+
+  const stopWebcam = () => {
+    if (webcamStream) {
+      webcamStream.getTracks().forEach((track) => track.stop());
+      setWebcamStream(null);
+    }
+    setUseWebcam(false);
+    stopDetection();
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const toggleWebcam = () => {
+    if (useWebcam) {
+      stopWebcam();
+    } else {
+      startWebcam();
+    }
+  };
+
+  // Detection controls
+  const handleDetectionResult = useCallback((result) => {
+    setLastDetection(result);
+
+    if (result.fireDetected) {
+      setFireAlert(true);
+      console.log("🔥 FIRE DETECTED!", result);
+    } else {
+      setFireAlert(false);
+    }
+  }, []);
+
+  const startDetection = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+
+    detectionLoopRef.current = createDetectionLoop(
+      videoRef.current,
+      canvasRef.current,
+      handleDetectionResult,
+      2000 // 2 second interval
+    );
+    detectionLoopRef.current.start();
+    setIsDetecting(true);
+  };
+
+  const stopDetection = () => {
+    if (detectionLoopRef.current) {
+      detectionLoopRef.current.stop();
+    }
+    setIsDetecting(false);
+    setFireAlert(false);
+    setLastDetection(null);
+  };
+
+  const toggleDetection = () => {
+    if (isDetecting) {
+      stopDetection();
+    } else {
+      startDetection();
+    }
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-            Camera Dashboard
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            General Control Center - Live Camera Feeds
-          </p>
+        {/* Page Header with Controls */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">
+              Camera Dashboard
+            </h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
+              General Control Center - Live Camera Feeds
+            </p>
+          </div>
+
+          {/* ML Controls */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* ML Status Indicator */}
+            <div
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm ${
+                mlStatus.online && mlStatus.modelLoaded
+                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+              }`}
+            >
+              <Circle
+                className={`w-2 h-2 fill-current ${
+                  mlStatus.online ? "text-green-500" : "text-yellow-500"
+                }`}
+              />
+              <span>
+                ML:{" "}
+                {mlStatus.online
+                  ? mlStatus.modelLoaded
+                    ? "Ready"
+                    : "No Model"
+                  : "Offline"}
+              </span>
+            </div>
+
+            {/* Webcam Toggle Button */}
+            <button
+              onClick={toggleWebcam}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                useWebcam
+                  ? "bg-red-600 hover:bg-red-700 text-white"
+                  : "bg-primary-600 hover:bg-primary-700 text-white"
+              }`}
+            >
+              {useWebcam ? (
+                <VideoOff className="w-5 h-5" />
+              ) : (
+                <Video className="w-5 h-5" />
+              )}
+              {useWebcam ? "Stop Webcam" : "Use Webcam"}
+            </button>
+
+            {/* Detection Toggle Button */}
+            {useWebcam && (
+              <button
+                onClick={toggleDetection}
+                disabled={!mlStatus.online || !mlStatus.modelLoaded}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isDetecting
+                    ? "bg-orange-600 hover:bg-orange-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 text-white"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isDetecting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Stop Detection
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-5 h-5" />
+                    Start Detection
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
+
+        {/* Fire Alert Banner */}
+        {fireAlert && (
+          <div className="bg-red-600 text-white p-4 rounded-lg flex items-center gap-3 animate-pulse">
+            <AlertTriangle className="w-8 h-8" />
+            <div>
+              <p className="font-bold text-lg">🔥 FIRE DETECTED!</p>
+              <p className="text-sm opacity-90">
+                Confidence:{" "}
+                {((lastDetection?.highestConfidence || 0) * 100).toFixed(1)}% -
+                Immediate action required!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Live Webcam Feed with Detection */}
+        {useWebcam && (
+          <div className="card">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
+              Live Webcam Feed - Fire Detection
+            </h2>
+            <div className="relative aspect-video bg-slate-900 rounded-lg overflow-hidden max-w-3xl mx-auto">
+              {/* Video Element */}
+              <video
+                ref={videoRef}
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+                muted
+              />
+
+              {/* Detection Overlay Canvas */}
+              <canvas
+                ref={canvasRef}
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                width={640}
+                height={480}
+              />
+
+              {/* Status Indicators */}
+              <div className="absolute top-3 left-3 flex items-center gap-2">
+                <div className="flex items-center space-x-2 bg-black/70 px-2 py-1 rounded">
+                  <Circle className="w-2 h-2 text-red-500 fill-red-500 animate-pulse" />
+                  <span className="text-xs text-white font-medium">
+                    WEBCAM LIVE
+                  </span>
+                </div>
+                {isDetecting && (
+                  <div className="flex items-center space-x-2 bg-green-600/90 px-2 py-1 rounded">
+                    <Activity className="w-3 h-3 text-white" />
+                    <span className="text-xs text-white font-medium">
+                      DETECTING
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Detection Info */}
+              {lastDetection && (
+                <div className="absolute bottom-3 left-3 bg-black/70 px-3 py-2 rounded text-white text-sm">
+                  <p>
+                    Last scan:{" "}
+                    {new Date(lastDetection.timestamp).toLocaleTimeString()}
+                  </p>
+                  <p>Detections: {lastDetection.detections?.length || 0}</p>
+                  {lastDetection.highestConfidence > 0 && (
+                    <p>
+                      Highest confidence:{" "}
+                      {(lastDetection.highestConfidence * 100).toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

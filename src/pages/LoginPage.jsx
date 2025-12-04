@@ -28,11 +28,11 @@ const LoginPage = () => {
     try {
       const result = await signIn(email, password);
       console.log("Sign in result:", result);
-      
+
       if (result.error) {
         throw result.error;
       }
-      
+
       // For demo mode, navigate immediately since user state is already set
       // For Supabase auth, the onAuthStateChange will trigger and useEffect above will navigate
       if (result.data?.user) {

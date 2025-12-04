@@ -12,9 +12,21 @@ const mockSensors = [
     location_text: "Building A - Floor 1",
     status: "online",
     readings: {
-      temperature: { value: 28.5, reading_type: "temperature", created_at: new Date().toISOString() },
-      humidity: { value: 65, reading_type: "humidity", created_at: new Date().toISOString() },
-      smoke: { value: 12, reading_type: "smoke", created_at: new Date().toISOString() },
+      temperature: {
+        value: 28.5,
+        reading_type: "temperature",
+        created_at: new Date().toISOString(),
+      },
+      humidity: {
+        value: 65,
+        reading_type: "humidity",
+        created_at: new Date().toISOString(),
+      },
+      smoke: {
+        value: 12,
+        reading_type: "smoke",
+        created_at: new Date().toISOString(),
+      },
     },
   },
   {
@@ -23,9 +35,21 @@ const mockSensors = [
     location_text: "Building B - Floor 2",
     status: "online",
     readings: {
-      temperature: { value: 26.2, reading_type: "temperature", created_at: new Date().toISOString() },
-      humidity: { value: 58, reading_type: "humidity", created_at: new Date().toISOString() },
-      smoke: { value: 8, reading_type: "smoke", created_at: new Date().toISOString() },
+      temperature: {
+        value: 26.2,
+        reading_type: "temperature",
+        created_at: new Date().toISOString(),
+      },
+      humidity: {
+        value: 58,
+        reading_type: "humidity",
+        created_at: new Date().toISOString(),
+      },
+      smoke: {
+        value: 8,
+        reading_type: "smoke",
+        created_at: new Date().toISOString(),
+      },
     },
   },
   {
@@ -34,9 +58,21 @@ const mockSensors = [
     location_text: "Building C - Floor 1",
     status: "maintenance",
     readings: {
-      temperature: { value: 31.0, reading_type: "temperature", created_at: new Date().toISOString() },
-      humidity: { value: 72, reading_type: "humidity", created_at: new Date().toISOString() },
-      smoke: { value: 5, reading_type: "smoke", created_at: new Date().toISOString() },
+      temperature: {
+        value: 31.0,
+        reading_type: "temperature",
+        created_at: new Date().toISOString(),
+      },
+      humidity: {
+        value: 72,
+        reading_type: "humidity",
+        created_at: new Date().toISOString(),
+      },
+      smoke: {
+        value: 5,
+        reading_type: "smoke",
+        created_at: new Date().toISOString(),
+      },
     },
   },
 ];

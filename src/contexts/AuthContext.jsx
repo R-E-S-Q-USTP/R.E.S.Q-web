@@ -126,22 +126,24 @@ export const AuthProvider = ({ children }) => {
   const signIn = async (email, password) => {
     // Reset logout flag when signing in
     hasLoggedOut.current = false;
-    
+
     // Demo login credentials - check first for instant login without network
-    const isDemoCredentials = (email === "admin@resq.com" || email === "admin") && password === "admin123";
-    
+    const isDemoCredentials =
+      (email === "admin@resq.com" || email === "admin") &&
+      password === "admin123";
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      
+
       // If Supabase auth succeeds, return the result
       if (!error && data?.user) {
         isDemoMode.current = false;
         return { data, error: null };
       }
-      
+
       // If Supabase failed but demo credentials were used, allow demo login
       if (isDemoCredentials) {
         console.log("Supabase auth failed, using demo login mode");
@@ -149,7 +151,7 @@ export const AuthProvider = ({ children }) => {
         const demoUser = {
           id: "demo-user-id",
           email: "admin@resq.com",
-          user_metadata: { name: "Demo Admin" }
+          user_metadata: { name: "Demo Admin" },
         };
         setUser(demoUser);
         setProfile({
@@ -157,17 +159,17 @@ export const AuthProvider = ({ children }) => {
           email: "admin@resq.com",
           full_name: "Demo Admin",
           role: "admin",
-          station: { name: "Main Station", address: "Cagayan de Oro City" }
+          station: { name: "Main Station", address: "Cagayan de Oro City" },
         });
         setLoading(false);
         return { data: { user: demoUser }, error: null };
       }
-      
+
       // Return the Supabase error for non-demo credentials
       return { data, error: error || new Error("Invalid credentials") };
     } catch (err) {
       console.error("Sign in error:", err);
-      
+
       // Fallback demo login if Supabase is completely unavailable
       if (isDemoCredentials) {
         console.log("Using demo login mode (fallback)");
@@ -175,7 +177,7 @@ export const AuthProvider = ({ children }) => {
         const demoUser = {
           id: "demo-user-id",
           email: "admin@resq.com",
-          user_metadata: { name: "Demo Admin" }
+          user_metadata: { name: "Demo Admin" },
         };
         setUser(demoUser);
         setProfile({
@@ -183,12 +185,12 @@ export const AuthProvider = ({ children }) => {
           email: "admin@resq.com",
           full_name: "Demo Admin",
           role: "admin",
-          station: { name: "Main Station", address: "Cagayan de Oro City" }
+          station: { name: "Main Station", address: "Cagayan de Oro City" },
         });
         setLoading(false);
         return { data: { user: demoUser }, error: null };
       }
-      
+
       return { data: null, error: err };
     }
   };
@@ -198,17 +200,17 @@ export const AuthProvider = ({ children }) => {
     // Set logout flag to prevent session restoration
     hasLoggedOut.current = true;
     isDemoMode.current = false;
-    
+
     // Clear local state FIRST before awaiting Supabase
     console.log("Clearing user state");
     setUser(null);
     setProfile(null);
     console.log("User state cleared");
-    
+
     // Try Supabase signOut with a timeout - don't wait forever
     try {
       const signOutPromise = supabase.auth.signOut();
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error("SignOut timeout")), 3000)
       );
       await Promise.race([signOutPromise, timeoutPromise]);
@@ -216,7 +218,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.log("Supabase signOut skipped or timed out:", err.message);
     }
-    
+
     return { error: null };
   };
 
