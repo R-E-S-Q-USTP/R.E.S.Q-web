@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
-import { supabase, fetchWithTimeout } from "../lib/supabase";
+import { supabase, supabaseRest } from "../lib/supabase";
 import { Map as MapIcon, MapPin, Flame, Camera, Radio } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -83,25 +83,20 @@ const MapPage = () => {
 
   const fetchMapData = async () => {
     try {
-      // Fetch real data with timeout
-      const { data: incidentsData } = await fetchWithTimeout(
-        supabase
-          .from("incidents")
-          .select(
-            `
-            *,
-            device:devices(*)
-          `
-          )
-          .order("detected_at", { ascending: false })
-          .limit(20)
+      console.log("📡 Fetching map data via REST API...");
+      
+      // Fetch incidents with device info using REST API
+      const incidentsData = await supabaseRest(
+        'incidents?select=*,device:devices(*)&order=detected_at.desc&limit=20'
       );
 
-      const { data: devicesData } = await fetchWithTimeout(
-        supabase.from("devices").select("*").order("name")
+      // Fetch all devices using REST API
+      const devicesData = await supabaseRest(
+        'devices?order=name'
       );
 
-      // Use real data only - no mock fallback
+      console.log("✅ Map data fetched - Incidents:", incidentsData?.length, "Devices:", devicesData?.length);
+
       if (incidentsData) {
         setIncidents(incidentsData);
       }
@@ -109,8 +104,7 @@ const MapPage = () => {
         setDevices(devicesData);
       }
     } catch (error) {
-      console.error("Error fetching map data:", error);
-      // Set empty state on error - no mock data
+      console.error("❌ Error fetching map data:", error);
       setIncidents([]);
       setDevices([]);
     }

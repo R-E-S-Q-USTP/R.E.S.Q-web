@@ -158,7 +158,7 @@ async def detect_fire_base64(data: dict):
                     if class_name.lower() in ["fire", "flame", "smoke", "0"]:
                         if confidence > highest_confidence:
                             highest_confidence = confidence
-                        if confidence >= 0.90:
+                        if confidence >= 0.30:
                             fire_detected = True
         
         return {
@@ -167,7 +167,7 @@ async def detect_fire_base64(data: dict):
             "highest_confidence": highest_confidence,
             "detection_count": len(detections),
             "detections": detections,
-            "threshold": 0.90,
+            "threshold": 0.30,
             "image_size": {
                 "width": image.shape[1],
                 "height": image.shape[0]

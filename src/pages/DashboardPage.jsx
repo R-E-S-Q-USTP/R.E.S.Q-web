@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAlerts } from "../contexts/AlertContext";
-import { supabase } from "../lib/supabase";
+import { supabaseRest } from "../lib/supabase";
 import { format } from "date-fns";
 import { Radio, Users, Camera, Flame, MapPin, Clock } from "lucide-react";
 
@@ -20,30 +20,20 @@ const DashboardPage = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch active sensors
-      const { data: devices } = await supabase
-        .from("devices")
-        .select("id, status")
-        .eq("status", "online");
+      console.log("📡 Fetching dashboard data via REST API...");
+      
+      // Fetch active sensors using REST API
+      const devices = await supabaseRest('devices?status=eq.online');
 
-      // Fetch active users (response team)
-      const { data: users } = await supabase
-        .from("users")
-        .select("id")
-        .eq("role", "FireResponder");
+      // Fetch active users (response team) using REST API
+      const users = await supabaseRest('users?role=eq.FireResponder');
 
-      // Fetch recent incidents
-      const { data: incidents } = await supabase
-        .from("incidents")
-        .select(
-          `
-          *,
-          device:devices(*),
-          alerts(*)
-        `
-        )
-        .order("detected_at", { ascending: false })
-        .limit(5);
+      // Fetch recent incidents using REST API
+      const incidents = await supabaseRest(
+        'incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc&limit=5'
+      );
+
+      console.log("✅ Dashboard data fetched");
 
       setStats({
         activeSensors: devices?.length || 0,
@@ -52,7 +42,7 @@ const DashboardPage = () => {
 
       setRecentIncidents(incidents || []);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      console.error("❌ Error fetching dashboard data:", error);
     }
   };
 

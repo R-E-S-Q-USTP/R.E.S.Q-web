@@ -5,7 +5,7 @@
 
 const ML_BACKEND_URL =
   import.meta.env.VITE_ML_BACKEND_URL || "http://localhost:8000";
-const CONFIDENCE_THRESHOLD = 0.9; // 90% confidence required
+const CONFIDENCE_THRESHOLD = 0.3; // 30% confidence required (temporary)
 const DETECTION_INTERVAL = 2000; // 2 seconds between detections
 
 /**
@@ -112,7 +112,7 @@ export const drawDetections = (canvas, detections, videoWidth, videoHeight) => {
 
     // Draw bounding box
     if (isFireRelated) {
-      ctx.strokeStyle = confidence >= 0.9 ? "#ef4444" : "#f59e0b"; // Red for high, orange for medium
+      ctx.strokeStyle = confidence >= 0.3 ? "#ef4444" : "#f59e0b"; // Red for high, orange for medium
       ctx.lineWidth = 3;
     } else {
       ctx.strokeStyle = "#3b82f6"; // Blue for other classes
@@ -126,7 +126,7 @@ export const drawDetections = (canvas, detections, videoWidth, videoHeight) => {
     const textWidth = ctx.measureText(label).width;
 
     ctx.fillStyle = isFireRelated
-      ? confidence >= 0.9
+      ? confidence >= 0.3
         ? "#ef4444"
         : "#f59e0b"
       : "#3b82f6";

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import Layout from "../components/Layout";
-import { supabase } from "../lib/supabase";
+import { supabaseRest } from "../lib/supabase";
 import {
   Camera,
   Circle,
@@ -36,6 +36,7 @@ const CameraDashboardPage = () => {
   const [useWebcam, setUseWebcam] = useState(false);
   const [webcamStream, setWebcamStream] = useState(null);
   const [isDetecting, setIsDetecting] = useState(false);
+  const [deviceReady, setDeviceReady] = useState(false); // Track device registration
   const [mlStatus, setMlStatus] = useState({
     online: false,
     modelLoaded: false,
@@ -45,9 +46,14 @@ const CameraDashboardPage = () => {
 
   // Device and cooldown refs
   const deviceRef = useRef(null);
-  const lastAlertTimeRef = useRef(0);
+  const lastAlertTimeRef = useRef(null); // null = no previous alert
   const cooldownRemainingRef = useRef(0);
   const [cooldownRemaining, setCooldownRemaining] = useState(0);
+
+  // Sustained detection refs (fire must be detected for 3 seconds)
+  const fireDetectionStartRef = useRef(null);
+  const isCreatingAlertRef = useRef(false); // Prevent reset during alert creation
+  const SUSTAINED_DETECTION_MS = 3000; // 3 seconds
 
   // Refs
   const videoRef = useRef(null);
@@ -55,6 +61,16 @@ const CameraDashboardPage = () => {
   const detectionLoopRef = useRef(null);
 
   useEffect(() => {
+    console.log("🚀 CameraDashboardPage mounted - initializing...");
+    
+    // TEMPORARY: Set test device directly if registration fails
+    const testDeviceId = "813ded50-14e5-43f2-b5dd-19dd3e622ae4";
+    if (!deviceRef.current) {
+      deviceRef.current = { id: testDeviceId, name: "ML-CAM-TEST" };
+      setDeviceReady(true);
+      console.log("📷 Using fallback test device:", testDeviceId);
+    }
+    
     fetchCameras();
     fetchArchive();
     checkMLBackend();
@@ -62,6 +78,10 @@ const CameraDashboardPage = () => {
 
     // Cooldown timer update
     const cooldownInterval = setInterval(() => {
+      if (lastAlertTimeRef.current === null) {
+        setCooldownRemaining(0);
+        return;
+      }
       const remaining = Math.max(
         0,
         ALERT_COOLDOWN_MS - (Date.now() - lastAlertTimeRef.current)
@@ -83,24 +103,43 @@ const CameraDashboardPage = () => {
     };
   }, []);
 
-  // Auto-start detection when webcam is active and ML is ready
+  // Auto-start detection when webcam is active and ML is ready AND device is registered
   useEffect(() => {
-    if (useWebcam && mlStatus.online && mlStatus.modelLoaded && !isDetecting) {
+    if (useWebcam && mlStatus.online && mlStatus.modelLoaded && deviceReady && !isDetecting) {
       // Small delay to ensure video element is ready
       const timer = setTimeout(() => {
         startDetection();
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [useWebcam, mlStatus.online, mlStatus.modelLoaded]);
+  }, [useWebcam, mlStatus.online, mlStatus.modelLoaded, deviceReady]);
 
   const registerMLDevice = async () => {
-    const device = await getOrRegisterDevice();
-    if (device) {
-      deviceRef.current = device;
-      console.log("📷 ML Device ready:", device.name);
-      // Refresh cameras to include the new device
-      fetchCameras();
+    console.log("📷 Attempting to register ML device...");
+    // Don't set deviceReady to false - keep fallback working
+    try {
+      const device = await getOrRegisterDevice();
+      if (device) {
+        deviceRef.current = device;
+        setDeviceReady(true);
+        console.log("✅ ML Device ready:", device.name, "ID:", device.id);
+        // Refresh cameras to include the new device
+        fetchCameras();
+      } else {
+        console.error("❌ Device registration failed - using fallback device");
+        // Keep deviceReady true if fallback is set
+        if (deviceRef.current?.id) {
+          console.log("📷 Fallback device still active:", deviceRef.current.id);
+          setDeviceReady(true);
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error during device registration:", err);
+      // Keep deviceReady true if fallback is set
+      if (deviceRef.current?.id) {
+        console.log("📷 Fallback device still active:", deviceRef.current.id);
+        setDeviceReady(true);
+      }
     }
   };
 
@@ -111,13 +150,8 @@ const CameraDashboardPage = () => {
 
   const fetchCameras = async () => {
     try {
-      const { data, error } = await supabase
-        .from("devices")
-        .select("*")
-        .eq("type", "camera")
-        .order("name");
-
-      if (error) throw error;
+      console.log("📡 Fetching cameras via REST API...");
+      const data = await supabaseRest('devices?type=eq.camera&order=name');
 
       // Use real data only - no mock fallback
       if (data && data.length > 0) {
@@ -136,6 +170,7 @@ const CameraDashboardPage = () => {
           inactive: maintenance,
           offline,
         }));
+        console.log("✅ Cameras fetched:", data.length);
       } else {
         setCameras([]);
         setStats((prev) => ({
@@ -241,30 +276,72 @@ const CameraDashboardPage = () => {
   // Detection controls
   const handleDetectionResult = useCallback(async (result) => {
     setLastDetection(result);
+    const now = Date.now();
 
     if (result.fireDetected) {
       setFireAlert(true);
-      console.log("🔥 FIRE DETECTED!", result);
+      
+      // Track sustained detection - fire must be detected for 3 seconds
+      if (fireDetectionStartRef.current === null && !isCreatingAlertRef.current) {
+        fireDetectionStartRef.current = now;
+        console.log("🔥 Fire detected, starting 3-second confirmation...");
+        return; // Wait for sustained detection
+      }
+
+      // Skip if already creating an alert
+      if (isCreatingAlertRef.current) {
+        console.log("⏳ Alert creation in progress, skipping...");
+        return;
+      }
+
+      const detectionDuration = now - fireDetectionStartRef.current;
+      
+      if (detectionDuration < SUSTAINED_DETECTION_MS) {
+        const remainingMs = SUSTAINED_DETECTION_MS - detectionDuration;
+        console.log(`🔥 Fire detected for ${Math.floor(detectionDuration/1000)}s, need ${Math.ceil(remainingMs/1000)}s more...`);
+        return; // Keep waiting
+      }
+
+      // Fire confirmed for 3+ seconds - now check cooldown
+      console.log("🔥 FIRE CONFIRMED for 3+ seconds!", result);
 
       // Check cooldown before creating alert
-      const now = Date.now();
-      const timeSinceLastAlert = now - lastAlertTimeRef.current;
+      const timeSinceLastAlert = lastAlertTimeRef.current === null 
+        ? Infinity 
+        : now - lastAlertTimeRef.current;
+
+      // Log device status for debugging
+      console.log("📷 Device status:", deviceRef.current ? `ID: ${deviceRef.current.id}` : "NO DEVICE REGISTERED");
+      console.log("⏱️ Time since last alert:", timeSinceLastAlert === Infinity ? "Never" : `${Math.floor(timeSinceLastAlert/1000)}s`);
 
       if (timeSinceLastAlert >= ALERT_COOLDOWN_MS && deviceRef.current?.id) {
         console.log("🚨 Creating alert (cooldown passed)...");
+        
+        // Set flag to prevent race conditions
+        isCreatingAlertRef.current = true;
 
-        // Create incident and alert in Supabase
-        const alertResult = await createFireAlert(deviceRef.current.id, result);
+        try {
+          // Create incident and alert in Supabase
+          const alertResult = await createFireAlert(deviceRef.current.id, result);
 
-        if (alertResult) {
-          console.log("✅ Alert created successfully:", alertResult);
-          lastAlertTimeRef.current = now;
-          // Refresh data to show new incident
-          fetchCameras();
-        } else {
-          console.error("❌ Failed to create alert");
+          if (alertResult) {
+            console.log("✅ Alert created successfully:", alertResult);
+            lastAlertTimeRef.current = now;
+            // Reset sustained detection after successful alert
+            fireDetectionStartRef.current = null;
+            // Refresh data to show new incident
+            fetchCameras();
+          } else {
+            console.error("❌ Failed to create alert - createFireAlert returned null");
+          }
+        } catch (err) {
+          console.error("❌ Error creating alert:", err);
+        } finally {
+          isCreatingAlertRef.current = false;
         }
-      } else {
+      } else if (!deviceRef.current?.id) {
+        console.error("❌ Cannot create alert: No device registered");
+      } else if (timeSinceLastAlert < ALERT_COOLDOWN_MS) {
         const remainingSec = Math.ceil(
           (ALERT_COOLDOWN_MS - timeSinceLastAlert) / 1000
         );
@@ -272,6 +349,11 @@ const CameraDashboardPage = () => {
       }
     } else {
       setFireAlert(false);
+      // Reset sustained detection if fire is no longer detected (but not during alert creation)
+      if (fireDetectionStartRef.current !== null && !isCreatingAlertRef.current) {
+        console.log("🔥 Fire no longer detected, resetting confirmation timer");
+        fireDetectionStartRef.current = null;
+      }
     }
   }, []);
 

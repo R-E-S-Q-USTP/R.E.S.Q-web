@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase";
+import { supabaseRest } from "../lib/supabase";
 import { subDays, startOfDay } from "date-fns";
 
 // Query keys for cache management
@@ -17,45 +17,23 @@ const STALE_TIME = {
   analytics: 60 * 1000, // 60 seconds
 };
 
-// Timeout wrapper for queries
-const withTimeout = (promise, ms = 10000) => {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Query timeout")), ms)
-    ),
-  ]);
-};
-
 /**
- * Fetch incidents with device and alert relations
+ * Fetch incidents with device and alert relations using REST API
  */
 const fetchIncidentsWithRelations = async () => {
   try {
-    const { data, error } = await withTimeout(
-      supabase
-        .from("incidents")
-        .select(
-          `
-        *,
-        device:devices(*),
-        alerts(
-          *,
-          acknowledged_by_user:users!acknowledged_by(full_name)
-        )
-      `
-        )
-        .order("detected_at", { ascending: false })
+    console.log("📡 Fetching incidents via REST API...");
+    
+    // Fetch incidents with embedded relations
+    const incidents = await supabaseRest(
+      'incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc'
     );
-
-    if (error) {
-      console.error("Incidents query error:", error);
-      return []; // Return empty array instead of throwing
-    }
-    return data || [];
+    
+    console.log("✅ Incidents fetched:", incidents.length);
+    return incidents || [];
   } catch (err) {
-    console.error("Incidents fetch error:", err);
-    return []; // Return empty array on timeout/error
+    console.error("❌ Incidents fetch error:", err);
+    return [];
   }
 };
 
@@ -67,67 +45,56 @@ export const useIncidents = () => {
     queryKey: queryKeys.incidentsWithRelations,
     queryFn: fetchIncidentsWithRelations,
     staleTime: STALE_TIME.incidents,
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    gcTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 };
 
 /**
- * Fetch sensors with their latest readings (optimized - single query for readings)
+ * Fetch sensors with their latest readings using REST API
  */
 const fetchSensorsWithReadings = async () => {
   try {
-    // First get all sensor hub devices
-    const { data: devices, error: devicesError } = await withTimeout(
-      supabase
-        .from("devices")
-        .select("*")
-        .eq("type", "sensor_hub")
-        .order("name")
+    console.log("📡 Fetching sensors via REST API...");
+    
+    // Fetch sensor hub devices
+    const devices = await supabaseRest(
+      'devices?type=eq.sensor_hub&order=name'
     );
-
-    if (devicesError) {
-      console.error("Devices query error:", devicesError);
+    
+    if (!devices || devices.length === 0) {
+      console.log("📡 No sensor devices found");
       return [];
     }
-    if (!devices || devices.length === 0) return [];
 
-    // Get device IDs
-    const deviceIds = devices.map((d) => d.id);
-
-    // Fetch ALL sensor readings for all devices in ONE query (fixes N+1)
-    const { data: allReadings, error: readingsError } = await withTimeout(
-      supabase
-        .from("sensor_readings")
-        .select("*")
-        .in("device_id", deviceIds)
-        .order("created_at", { ascending: false })
+    // Fetch sensor readings
+    const deviceIds = devices.map(d => d.id);
+    const readings = await supabaseRest(
+      `sensor_readings?device_id=in.(${deviceIds.join(',')})&order=created_at.desc`
     );
-
-    if (readingsError) {
-      console.warn("Error fetching sensor readings:", readingsError);
-    }
 
     // Group readings by device and type
     const readingsByDevice = {};
-    (allReadings || []).forEach((reading) => {
+    (readings || []).forEach((reading) => {
       if (!readingsByDevice[reading.device_id]) {
         readingsByDevice[reading.device_id] = {};
       }
-      // Keep only the latest reading per type
       if (!readingsByDevice[reading.device_id][reading.reading_type]) {
         readingsByDevice[reading.device_id][reading.reading_type] = reading;
       }
     });
 
     // Combine devices with their readings
-    return devices.map((device) => ({
+    const result = devices.map((device) => ({
       ...device,
       readings: readingsByDevice[device.id] || {},
     }));
+    
+    console.log("✅ Sensors fetched:", result.length);
+    return result;
   } catch (err) {
-    console.error("Sensors fetch error:", err);
-    return []; // Return empty array on timeout/error
+    console.error("❌ Sensors fetch error:", err);
+    return [];
   }
 };
 
@@ -145,65 +112,34 @@ export const useSensors = () => {
 };
 
 /**
- * Fetch all analytics data in parallel
+ * Fetch all analytics data using REST API
  */
 const fetchAnalyticsData = async () => {
   try {
+    console.log("📡 Fetching analytics via REST API...");
+    
     const now = new Date();
     const sevenDaysAgo = subDays(now, 7).toISOString();
     const thirtyDaysAgo = subDays(now, 30).toISOString();
 
-    // Run all queries in parallel for better performance with timeout
-    const [
-      totalIncidentsResult,
-      last7DaysResult,
-      last30DaysResult,
-      incidentsResult,
-      alertsResult,
-    ] = await withTimeout(
-      Promise.all([
-        // Total incidents count
-        supabase.from("incidents").select("*", { count: "exact", head: true }),
-        // Last 7 days count
-        supabase
-          .from("incidents")
-          .select("*", { count: "exact", head: true })
-          .gte("detected_at", sevenDaysAgo),
-        // Last 30 days count
-        supabase
-          .from("incidents")
-          .select("*", { count: "exact", head: true })
-          .gte("detected_at", thirtyDaysAgo),
-        // Incidents data for charts
-        supabase
-          .from("incidents")
-          .select("location_text, detection_method, detected_at")
-          .gte("detected_at", thirtyDaysAgo)
-          .order("detected_at", { ascending: false }),
-        // Alerts for response time calculation
-        supabase
-          .from("alerts")
-          .select("created_at, acknowledged_at")
-          .not("acknowledged_at", "is", null)
-          .limit(100),
-      ]),
-      15000 // 15 second timeout for all analytics queries
+    // Fetch incidents for analytics
+    const incidents = await supabaseRest(
+      `incidents?select=id,location_text,detection_method,detected_at&detected_at=gte.${thirtyDaysAgo}&order=detected_at.desc`
     );
 
-    // Extract data with error handling
-    const totalIncidents = totalIncidentsResult?.error
-      ? 0
-      : totalIncidentsResult?.count || 0;
-    const last7Days = last7DaysResult?.error ? 0 : last7DaysResult?.count || 0;
-    const last30Days = last30DaysResult?.error
-      ? 0
-      : last30DaysResult?.count || 0;
-    const incidents = incidentsResult?.error ? [] : incidentsResult?.data || [];
-    const alertsData = alertsResult?.error ? [] : alertsResult?.data || [];
+    // Fetch acknowledged alerts for response time
+    const alerts = await supabaseRest(
+      'alerts?select=created_at,acknowledged_at&acknowledged_at=not.is.null&limit=100'
+    );
+
+    // Calculate stats
+    const totalIncidents = incidents?.length || 0;
+    const last7Days = incidents?.filter(i => new Date(i.detected_at) >= new Date(sevenDaysAgo)).length || 0;
+    const last30Days = totalIncidents;
 
     // Calculate most active location
     const locationCounts = {};
-    incidents.forEach((incident) => {
+    (incidents || []).forEach((incident) => {
       const loc = incident.location_text || "Unknown";
       locationCounts[loc] = (locationCounts[loc] || 0) + 1;
     });
@@ -224,7 +160,7 @@ const fetchAnalyticsData = async () => {
       const dayEnd = new Date(dayStart);
       dayEnd.setDate(dayEnd.getDate() + 1);
 
-      const count = incidents.filter((inc) => {
+      const count = (incidents || []).filter((inc) => {
         const incDate = new Date(inc.detected_at);
         return incDate >= dayStart && incDate < dayEnd;
       }).length;
@@ -237,7 +173,7 @@ const fetchAnalyticsData = async () => {
 
     // Calculate detection methods distribution
     const methodCounts = {};
-    incidents.forEach((incident) => {
+    (incidents || []).forEach((incident) => {
       const method = incident.detection_method || "Unknown";
       methodCounts[method] = (methodCounts[method] || 0) + 1;
     });
@@ -265,19 +201,21 @@ const fetchAnalyticsData = async () => {
 
     // Calculate average response time
     let avgResponseTime = "N/A";
-    if (alertsData.length > 0) {
-      const totalMs = alertsData.reduce((sum, alert) => {
+    if (alerts && alerts.length > 0) {
+      const totalMs = alerts.reduce((sum, alert) => {
         const created = new Date(alert.created_at);
         const acknowledged = new Date(alert.acknowledged_at);
         return sum + (acknowledged - created);
       }, 0);
-      const avgMs = totalMs / alertsData.length;
+      const avgMs = totalMs / alerts.length;
       const avgMinutes = Math.round((avgMs / 60000) * 10) / 10;
       avgResponseTime =
         avgMinutes < 60
           ? `${avgMinutes} min`
           : `${Math.round((avgMinutes / 60) * 10) / 10} hr`;
     }
+
+    console.log("✅ Analytics fetched - Total incidents:", totalIncidents);
 
     return {
       stats: {
@@ -292,8 +230,7 @@ const fetchAnalyticsData = async () => {
       activeLocations,
     };
   } catch (err) {
-    console.error("Analytics fetch error:", err);
-    // Return default empty state on error
+    console.error("❌ Analytics fetch error:", err);
     return {
       stats: {
         totalIncidents: 0,

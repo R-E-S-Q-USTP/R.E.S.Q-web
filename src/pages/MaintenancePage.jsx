@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Layout from "../components/Layout";
-import { supabase } from "../lib/supabase";
+import { supabaseRest } from "../lib/supabase";
 import {
   Wrench,
   Plus,
@@ -22,15 +22,12 @@ const MaintenancePage = () => {
 
   const fetchDevices = async () => {
     try {
-      const { data, error } = await supabase
-        .from("devices")
-        .select("*")
-        .order("name");
-
-      if (error) throw error;
+      console.log("📡 Fetching devices via REST API...");
+      const data = await supabaseRest('devices?order=name');
+      console.log("✅ Devices fetched:", data?.length);
       setDevices(data || []);
     } catch (error) {
-      console.error("Error fetching devices:", error);
+      console.error("❌ Error fetching devices:", error);
     } finally {
       setLoading(false);
     }

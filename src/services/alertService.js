@@ -5,6 +5,36 @@
 
 import { supabase } from "../lib/supabase";
 
+// Supabase REST API config (direct fetch as fallback)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+/**
+ * Direct REST API call to Supabase (bypasses JS client)
+ */
+const supabaseRest = async (table, method, body = null) => {
+  const url = `${SUPABASE_URL}/rest/v1/${table}`;
+  const options = {
+    method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    }
+  };
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+  
+  const response = await fetch(url, options);
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Supabase REST error: ${response.status} - ${error}`);
+  }
+  return response.json();
+};
+
 // Default location: USTP CDO Campus
 export const DEFAULT_LOCATION = {
   lat: 8.4857,
@@ -17,6 +47,21 @@ export const ALERT_COOLDOWN_MS = 30000;
 
 // LocalStorage key for device ID persistence
 const DEVICE_STORAGE_KEY = "resq_ml_device_id";
+
+// Timeout for Supabase operations (15 seconds)
+const SUPABASE_TIMEOUT_MS = 15000;
+
+/**
+ * Wrap a promise with a timeout
+ */
+const withTimeout = (promise, ms = SUPABASE_TIMEOUT_MS) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+};
 
 /**
  * Generate a unique device name
@@ -37,9 +82,11 @@ export const getOrRegisterDevice = async () => {
   try {
     // Check localStorage for existing device ID
     const storedDeviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
+    console.log("🔍 Checking localStorage for device ID:", storedDeviceId || "none");
 
     if (storedDeviceId) {
       // Verify device still exists in Supabase
+      console.log("🔍 Verifying device exists in Supabase...");
       const { data: existingDevice, error } = await supabase
         .from("devices")
         .select("id, name, location_text, lat, lng")
@@ -61,6 +108,7 @@ export const getOrRegisterDevice = async () => {
         return existingDevice;
       } else {
         // Device not found in DB, clear localStorage
+        console.log("⚠️ Device lookup error:", error?.message || "device not found");
         localStorage.removeItem(DEVICE_STORAGE_KEY);
         console.log(
           "⚠️ Stored device not found in database, registering new one..."
@@ -70,33 +118,38 @@ export const getOrRegisterDevice = async () => {
 
     // Register new device
     const deviceName = generateDeviceName();
+    console.log("📝 Registering new device:", deviceName);
 
-    const { data: newDevice, error: insertError } = await supabase
-      .from("devices")
-      .insert({
-        name: deviceName,
-        type: "camera",
-        location_text: DEFAULT_LOCATION.text,
-        lat: DEFAULT_LOCATION.lat,
-        lng: DEFAULT_LOCATION.lng,
-        status: "online",
-        last_heartbeat: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    const { data: newDevice, error: insertError } = await withTimeout(
+      supabase
+        .from("devices")
+        .insert({
+          name: deviceName,
+          type: "camera",
+          location_text: DEFAULT_LOCATION.text,
+          lat: DEFAULT_LOCATION.lat,
+          lng: DEFAULT_LOCATION.lng,
+          status: "online",
+          last_heartbeat: new Date().toISOString(),
+        })
+        .select()
+        .single()
+    );
 
     if (insertError) {
       console.error("❌ Error registering device:", insertError);
+      console.error("❌ Error details:", JSON.stringify(insertError, null, 2));
       return null;
     }
 
     // Store device ID in localStorage for persistence
     localStorage.setItem(DEVICE_STORAGE_KEY, newDevice.id);
-    console.log("✅ Registered new ML camera device:", newDevice.name);
+    console.log("✅ Registered new ML camera device:", newDevice.name, "ID:", newDevice.id);
 
     return newDevice;
   } catch (error) {
     console.error("❌ Error in getOrRegisterDevice:", error);
+    console.error("❌ Stack:", error.stack);
     return null;
   }
 };
@@ -109,38 +162,36 @@ export const getOrRegisterDevice = async () => {
  */
 export const createIncident = async (deviceId, detectionData) => {
   try {
-    // Get device location
-    const { data: device } = await supabase
-      .from("devices")
-      .select("location_text, lat, lng")
-      .eq("id", deviceId)
-      .single();
+    console.log("📝 Creating incident for device:", deviceId);
+    
+    // Use default location to skip device lookup (faster)
+    const locationText = DEFAULT_LOCATION.text;
+    const lat = DEFAULT_LOCATION.lat;
+    const lng = DEFAULT_LOCATION.lng;
 
-    const locationText = device?.location_text || DEFAULT_LOCATION.text;
-    const lat = device?.lat || DEFAULT_LOCATION.lat;
-    const lng = device?.lng || DEFAULT_LOCATION.lng;
+    const incidentData = {
+      device_id: deviceId,
+      location_text: locationText,
+      lat: lat,
+      lng: lng,
+      detection_method: "YOLOv8",
+      detected_at: new Date().toISOString(),
+      sensor_snapshot: {
+        confidence: detectionData.highestConfidence,
+        detections: detectionData.detections,
+        threshold: detectionData.threshold,
+        timestamp: detectionData.timestamp,
+      },
+    };
 
-    const { data: incident, error } = await supabase
-      .from("incidents")
-      .insert({
-        device_id: deviceId,
-        location_text: locationText,
-        lat: lat,
-        lng: lng,
-        detection_method: "YOLOv8",
-        detected_at: new Date().toISOString(),
-        sensor_snapshot: {
-          confidence: detectionData.highestConfidence,
-          detections: detectionData.detections,
-          threshold: detectionData.threshold,
-          timestamp: detectionData.timestamp,
-        },
-      })
-      .select()
-      .single();
+    console.log("📝 Inserting incident via REST API...");
+    
+    // Use direct REST API instead of Supabase client
+    const incidents = await supabaseRest('incidents', 'POST', incidentData);
+    const incident = incidents[0];
 
-    if (error) {
-      console.error("❌ Error creating incident:", error);
+    if (!incident) {
+      console.error("❌ No incident returned from API");
       return null;
     }
 
@@ -159,18 +210,20 @@ export const createIncident = async (deviceId, detectionData) => {
  */
 export const createAlert = async (incidentId) => {
   try {
-    const { data: alert, error } = await supabase
-      .from("alerts")
-      .insert({
-        incident_id: incidentId,
-        status: "new",
-        created_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    console.log("📝 Creating alert for incident:", incidentId);
+    
+    const alertData = {
+      incident_id: incidentId,
+      status: "new",
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      console.error("❌ Error creating alert:", error);
+    // Use direct REST API instead of Supabase client
+    const alerts = await supabaseRest('alerts', 'POST', alertData);
+    const alert = alerts[0];
+
+    if (!alert) {
+      console.error("❌ No alert returned from API");
       return null;
     }
 

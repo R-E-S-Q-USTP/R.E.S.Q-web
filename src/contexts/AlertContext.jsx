@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
+import { supabase, supabaseRest } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
 
 const AlertContext = createContext({});
@@ -70,22 +70,14 @@ export const AlertProvider = ({ children }) => {
 
   const fetchAlerts = async () => {
     try {
-      const { data, error } = await supabase
-        .from("alerts")
-        .select(
-          `
-          *,
-          incident:incidents(
-            *,
-            device:devices(*)
-          ),
-          acknowledged_by_user:users!acknowledged_by(full_name)
-        `
-        )
-        .order("created_at", { ascending: false })
-        .limit(50);
+      console.log("📡 Fetching alerts via REST API...");
+      
+      // Use REST API to fetch alerts with incident and device info
+      const data = await supabaseRest(
+        'alerts?select=*,incident:incidents(*,device:devices(*))&order=created_at.desc&limit=50'
+      );
 
-      if (error) throw error;
+      console.log("✅ Alerts fetched:", data?.length);
 
       // Use real data only - no mock fallback
       setAlerts(data || []);
@@ -93,7 +85,7 @@ export const AlertProvider = ({ children }) => {
         (data || []).filter((alert) => alert.status === "new").length
       );
     } catch (error) {
-      console.error("Error fetching alerts:", error);
+      console.error("❌ Error fetching alerts:", error);
       // Set empty state on error - no mock data
       setAlerts([]);
       setUnacknowledgedCount(0);
