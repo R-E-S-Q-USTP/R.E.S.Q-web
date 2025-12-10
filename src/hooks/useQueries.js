@@ -23,12 +23,12 @@ const STALE_TIME = {
 const fetchIncidentsWithRelations = async () => {
   try {
     console.log("📡 Fetching incidents via REST API...");
-    
+
     // Fetch incidents with embedded relations
     const incidents = await supabaseRest(
-      'incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc'
+      "incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc"
     );
-    
+
     console.log("✅ Incidents fetched:", incidents.length);
     return incidents || [];
   } catch (err) {
@@ -56,21 +56,21 @@ export const useIncidents = () => {
 const fetchSensorsWithReadings = async () => {
   try {
     console.log("📡 Fetching sensors via REST API...");
-    
+
     // Fetch sensor hub devices
-    const devices = await supabaseRest(
-      'devices?type=eq.sensor_hub&order=name'
-    );
-    
+    const devices = await supabaseRest("devices?type=eq.sensor_hub&order=name");
+
     if (!devices || devices.length === 0) {
       console.log("📡 No sensor devices found");
       return [];
     }
 
     // Fetch sensor readings
-    const deviceIds = devices.map(d => d.id);
+    const deviceIds = devices.map((d) => d.id);
     const readings = await supabaseRest(
-      `sensor_readings?device_id=in.(${deviceIds.join(',')})&order=created_at.desc`
+      `sensor_readings?device_id=in.(${deviceIds.join(
+        ","
+      )})&order=created_at.desc`
     );
 
     // Group readings by device and type
@@ -89,7 +89,7 @@ const fetchSensorsWithReadings = async () => {
       ...device,
       readings: readingsByDevice[device.id] || {},
     }));
-    
+
     console.log("✅ Sensors fetched:", result.length);
     return result;
   } catch (err) {
@@ -117,7 +117,7 @@ export const useSensors = () => {
 const fetchAnalyticsData = async () => {
   try {
     console.log("📡 Fetching analytics via REST API...");
-    
+
     const now = new Date();
     const sevenDaysAgo = subDays(now, 7).toISOString();
     const thirtyDaysAgo = subDays(now, 30).toISOString();
@@ -129,12 +129,15 @@ const fetchAnalyticsData = async () => {
 
     // Fetch acknowledged alerts for response time
     const alerts = await supabaseRest(
-      'alerts?select=created_at,acknowledged_at&acknowledged_at=not.is.null&limit=100'
+      "alerts?select=created_at,acknowledged_at&acknowledged_at=not.is.null&limit=100"
     );
 
     // Calculate stats
     const totalIncidents = incidents?.length || 0;
-    const last7Days = incidents?.filter(i => new Date(i.detected_at) >= new Date(sevenDaysAgo)).length || 0;
+    const last7Days =
+      incidents?.filter(
+        (i) => new Date(i.detected_at) >= new Date(sevenDaysAgo)
+      ).length || 0;
     const last30Days = totalIncidents;
 
     // Calculate most active location

@@ -23,7 +23,7 @@ const MaintenancePage = () => {
   const fetchDevices = async () => {
     try {
       console.log("📡 Fetching devices via REST API...");
-      const data = await supabaseRest('devices?order=name');
+      const data = await supabaseRest("devices?order=name");
       console.log("✅ Devices fetched:", data?.length);
       setDevices(data || []);
     } catch (error) {

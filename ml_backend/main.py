@@ -167,7 +167,7 @@ async def detect_fire_base64(data: dict):
             "highest_confidence": highest_confidence,
             "detection_count": len(detections),
             "detections": detections,
-            "threshold": 0.30,
+            "threshold": 0.90,
             "image_size": {
                 "width": image.shape[1],
                 "height": image.shape[0]

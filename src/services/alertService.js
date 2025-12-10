@@ -17,16 +17,16 @@ const supabaseRest = async (table, method, body = null) => {
   const options = {
     method,
     headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    }
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
   };
   if (body) {
     options.body = JSON.stringify(body);
   }
-  
+
   const response = await fetch(url, options);
   if (!response.ok) {
     const error = await response.text();
@@ -58,7 +58,10 @@ const withTimeout = (promise, ms = SUPABASE_TIMEOUT_MS) => {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms)
+      setTimeout(
+        () => reject(new Error(`Operation timed out after ${ms}ms`)),
+        ms
+      )
     ),
   ]);
 };
@@ -82,7 +85,10 @@ export const getOrRegisterDevice = async () => {
   try {
     // Check localStorage for existing device ID
     const storedDeviceId = localStorage.getItem(DEVICE_STORAGE_KEY);
-    console.log("🔍 Checking localStorage for device ID:", storedDeviceId || "none");
+    console.log(
+      "🔍 Checking localStorage for device ID:",
+      storedDeviceId || "none"
+    );
 
     if (storedDeviceId) {
       // Verify device still exists in Supabase
@@ -108,7 +114,10 @@ export const getOrRegisterDevice = async () => {
         return existingDevice;
       } else {
         // Device not found in DB, clear localStorage
-        console.log("⚠️ Device lookup error:", error?.message || "device not found");
+        console.log(
+          "⚠️ Device lookup error:",
+          error?.message || "device not found"
+        );
         localStorage.removeItem(DEVICE_STORAGE_KEY);
         console.log(
           "⚠️ Stored device not found in database, registering new one..."
@@ -144,7 +153,12 @@ export const getOrRegisterDevice = async () => {
 
     // Store device ID in localStorage for persistence
     localStorage.setItem(DEVICE_STORAGE_KEY, newDevice.id);
-    console.log("✅ Registered new ML camera device:", newDevice.name, "ID:", newDevice.id);
+    console.log(
+      "✅ Registered new ML camera device:",
+      newDevice.name,
+      "ID:",
+      newDevice.id
+    );
 
     return newDevice;
   } catch (error) {
@@ -163,7 +177,7 @@ export const getOrRegisterDevice = async () => {
 export const createIncident = async (deviceId, detectionData) => {
   try {
     console.log("📝 Creating incident for device:", deviceId);
-    
+
     // Use default location to skip device lookup (faster)
     const locationText = DEFAULT_LOCATION.text;
     const lat = DEFAULT_LOCATION.lat;
@@ -185,9 +199,9 @@ export const createIncident = async (deviceId, detectionData) => {
     };
 
     console.log("📝 Inserting incident via REST API...");
-    
+
     // Use direct REST API instead of Supabase client
-    const incidents = await supabaseRest('incidents', 'POST', incidentData);
+    const incidents = await supabaseRest("incidents", "POST", incidentData);
     const incident = incidents[0];
 
     if (!incident) {
@@ -211,7 +225,7 @@ export const createIncident = async (deviceId, detectionData) => {
 export const createAlert = async (incidentId) => {
   try {
     console.log("📝 Creating alert for incident:", incidentId);
-    
+
     const alertData = {
       incident_id: incidentId,
       status: "new",
@@ -219,7 +233,7 @@ export const createAlert = async (incidentId) => {
     };
 
     // Use direct REST API instead of Supabase client
-    const alerts = await supabaseRest('alerts', 'POST', alertData);
+    const alerts = await supabaseRest("alerts", "POST", alertData);
     const alert = alerts[0];
 
     if (!alert) {

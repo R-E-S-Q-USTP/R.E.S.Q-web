@@ -120,21 +120,49 @@ const AlertsPage = () => {
                         {alert.incident?.sensor_snapshot && (
                           <div className="mt-3 p-3 bg-white dark:bg-slate-800 rounded border border-red-200 dark:border-red-700">
                             <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">
-                              Sensor Readings:
+                              Detection Info:
                             </p>
                             <div className="grid grid-cols-2 gap-2">
-                              {Object.entries(
-                                alert.incident.sensor_snapshot
-                              ).map(([key, value]) => (
-                                <div key={key} className="text-sm">
-                                  <span className="text-slate-600 dark:text-slate-400 capitalize">
-                                    {key}:
+                              {alert.incident.sensor_snapshot.confidence && (
+                                <div className="text-sm">
+                                  <span className="text-slate-600 dark:text-slate-400">
+                                    Confidence:
                                   </span>{" "}
                                   <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                    {value}
+                                    {(
+                                      alert.incident.sensor_snapshot
+                                        .confidence * 100
+                                    ).toFixed(1)}
+                                    %
                                   </span>
                                 </div>
-                              ))}
+                              )}
+                              {alert.incident.sensor_snapshot.threshold && (
+                                <div className="text-sm">
+                                  <span className="text-slate-600 dark:text-slate-400">
+                                    Threshold:
+                                  </span>{" "}
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                    {(
+                                      alert.incident.sensor_snapshot.threshold *
+                                      100
+                                    ).toFixed(0)}
+                                    %
+                                  </span>
+                                </div>
+                              )}
+                              {alert.incident.sensor_snapshot.timestamp && (
+                                <div className="text-sm col-span-2">
+                                  <span className="text-slate-600 dark:text-slate-400">
+                                    Detected:
+                                  </span>{" "}
+                                  <span className="font-semibold text-slate-900 dark:text-slate-100">
+                                    {new Date(
+                                      alert.incident.sensor_snapshot.timestamp
+                                    ).toLocaleString()}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}

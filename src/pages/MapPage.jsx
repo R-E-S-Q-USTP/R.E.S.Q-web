@@ -84,18 +84,21 @@ const MapPage = () => {
   const fetchMapData = async () => {
     try {
       console.log("📡 Fetching map data via REST API...");
-      
+
       // Fetch incidents with device info using REST API
       const incidentsData = await supabaseRest(
-        'incidents?select=*,device:devices(*)&order=detected_at.desc&limit=20'
+        "incidents?select=*,device:devices(*)&order=detected_at.desc&limit=20"
       );
 
       // Fetch all devices using REST API
-      const devicesData = await supabaseRest(
-        'devices?order=name'
-      );
+      const devicesData = await supabaseRest("devices?order=name");
 
-      console.log("✅ Map data fetched - Incidents:", incidentsData?.length, "Devices:", devicesData?.length);
+      console.log(
+        "✅ Map data fetched - Incidents:",
+        incidentsData?.length,
+        "Devices:",
+        devicesData?.length
+      );
 
       if (incidentsData) {
         setIncidents(incidentsData);

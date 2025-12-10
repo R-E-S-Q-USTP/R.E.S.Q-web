@@ -21,16 +21,16 @@ const DashboardPage = () => {
   const fetchDashboardData = async () => {
     try {
       console.log("📡 Fetching dashboard data via REST API...");
-      
+
       // Fetch active sensors using REST API
-      const devices = await supabaseRest('devices?status=eq.online');
+      const devices = await supabaseRest("devices?status=eq.online");
 
       // Fetch active users (response team) using REST API
-      const users = await supabaseRest('users?role=eq.FireResponder');
+      const users = await supabaseRest("users?role=eq.FireResponder");
 
       // Fetch recent incidents using REST API
       const incidents = await supabaseRest(
-        'incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc&limit=5'
+        "incidents?select=*,device:devices(*),alerts(*)&order=detected_at.desc&limit=5"
       );
 
       console.log("✅ Dashboard data fetched");

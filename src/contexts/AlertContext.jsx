@@ -71,10 +71,10 @@ export const AlertProvider = ({ children }) => {
   const fetchAlerts = async () => {
     try {
       console.log("📡 Fetching alerts via REST API...");
-      
+
       // Use REST API to fetch alerts with incident and device info
       const data = await supabaseRest(
-        'alerts?select=*,incident:incidents(*,device:devices(*))&order=created_at.desc&limit=50'
+        "alerts?select=*,incident:incidents(*,device:devices(*))&order=created_at.desc&limit=50"
       );
 
       console.log("✅ Alerts fetched:", data?.length);
